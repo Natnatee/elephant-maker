@@ -2,9 +2,9 @@ import Link from "next/link";
 
 export default function FirmwareGuidePage() {
   return (
-    <main className="container mx-auto min-h-screen max-w-3xl space-y-6 bg-[#fff9ed] px-4 py-10 text-[#152b46] sm:px-8">
+    <main className="container mx-auto min-h-screen max-w-3xl space-y-6 bg-[var(--background)] px-4 py-10 text-[var(--foreground)] sm:px-8">
       <header className="space-y-3">
-        <p className="eyebrow text-sm font-bold text-orange-800">
+        <p className="eyebrow text-sm font-bold text-[var(--accent)]">
           MAKER HANDBOOK • ESP32
         </p>
         <h1 className="text-3xl font-bold">
@@ -15,7 +15,7 @@ export default function FirmwareGuidePage() {
           หน้านี้ไม่อัปโหลดไฟล์และไม่แฟลชบอร์ด
         </p>
       </header>
-      <aside className="panel rounded-xl border border-orange-300 bg-orange-100 p-5">
+      <aside className="panel rounded-xl border border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-text)] p-5">
         <strong>ห้ามเดา offset หรือใช้ manifest ของคนละ build</strong>
         <p className="mt-2">
           ชิป บอร์ด flash size และ partition layout ต้องตรงกัน
@@ -23,7 +23,7 @@ export default function FirmwareGuidePage() {
           สำรองข้อมูลสำคัญและทดลองกับบอร์ดทดสอบก่อน
         </p>
       </aside>
-      <section className="panel space-y-3 rounded-2xl border border-slate-200 bg-[#fffcf5] p-6">
+      <section className="panel space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
         <h2 className="section-heading text-xl font-bold">
           1. ESP32 กับ Arduino IDE
         </h2>
@@ -55,7 +55,7 @@ export default function FirmwareGuidePage() {
           </li>
         </ol>
       </section>
-      <section className="panel space-y-3 rounded-2xl border border-slate-200 bg-[#fffcf5] p-6">
+      <section className="panel space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
         <h2 className="section-heading text-xl font-bold">2. ESP-IDF</h2>
         <ol className="list-decimal space-y-3 pl-5">
           <li>
@@ -64,7 +64,7 @@ export default function FirmwareGuidePage() {
             อาจรีเซ็ตการตั้งค่าบางส่วน
           </li>
           <li>
-            รัน <code className="rounded bg-slate-100 px-1">idf.py build</code>{" "}
+            รัน <code className="rounded bg-[var(--surface-soft)] px-1">idf.py build</code>{" "}
             ในโครงการ แล้วตรวจผล build และ partition table
           </li>
           <li>
@@ -87,7 +87,7 @@ export default function FirmwareGuidePage() {
           </li>
         </ol>
       </section>
-      <section className="panel space-y-3 rounded-2xl border border-slate-200 bg-[#fffcf5] p-6">
+      <section className="panel space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
         <h2 className="section-heading text-xl font-bold">
           3. Checklist ก่อนแนบข้อมูลในร่าง
         </h2>
@@ -123,7 +123,7 @@ export default function FirmwareGuidePage() {
         </p>
       </section>
       <Link
-        className="button secondary inline-block rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold"
+        className="button secondary inline-block rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-3 font-semibold"
         href="/submit"
       >
         กลับไปฟอร์ม แล้วกดเปิดร่างที่บันทึกไว้

@@ -43,13 +43,15 @@ export function ProjectActions({
       canvas.height = 630;
       const context = canvas.getContext("2d");
       if (!context) throw new Error("Canvas unavailable");
-      context.fillStyle = "#172b45";
+      const styles = getComputedStyle(document.documentElement);
+      const palette = (name: string) => styles.getPropertyValue(name).trim();
+      context.fillStyle = palette("--share-background");
       context.fillRect(0, 0, 1200, 630);
-      context.fillStyle = "#f97316";
+      context.fillStyle = palette("--share-accent");
       context.fillRect(0, 0, 18, 630);
       context.font = "bold 27px sans-serif";
       context.fillText("ELEPHANT MAKER / SAMPLE PROJECT", 64, 90);
-      context.fillStyle = "#fff7ed";
+      context.fillStyle = palette("--share-foreground");
       context.font = "bold 54px sans-serif";
       // Wrap by grapheme to avoid splitting Thai combining marks; no remote images or fonts.
       const segments = new Intl.Segmenter("th", {
@@ -74,17 +76,17 @@ export function ProjectActions({
         context.fillText(visible, 64, 210 + index * 82);
       });
       context.font = "22px sans-serif";
-      context.fillStyle = "#c9d3d8";
+      context.fillStyle = palette("--share-muted");
       context.fillText(`โดย ${ownerName ?? "Elephant Maker"}`, 64, 452, 1060);
       context.font = "28px sans-serif";
-      context.fillStyle = "#fdba74";
+      context.fillStyle = palette("--share-accent");
       context.fillText(
         "ผลงานตัวอย่าง · ไม่ใช่คู่มือที่ผ่านการตรวจสอบ",
         64,
         505,
       );
       context.font = "22px sans-serif";
-      context.fillStyle = "#fff7ed";
+      context.fillStyle = palette("--share-foreground");
       const url = new URL(`/projects/${slug}`, window.location.origin).href;
       context.fillText(url, 64, 563, 1060);
       const blob = await new Promise<Blob>((resolve, reject) =>

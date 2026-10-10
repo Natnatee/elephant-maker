@@ -42,8 +42,8 @@ export default function MockLogin() {
     }
   }
   return (
-    <section className="panel space-y-5 rounded-2xl border border-slate-200 bg-[#fffcf5] p-6">
-      <div className="rounded-xl bg-orange-100 p-4 text-sm leading-6">
+    <section className="panel space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
+      <div className="rounded-xl bg-[var(--accent-soft)] p-4 text-sm leading-6">
         <strong>โหมดสาธิตเท่านั้น • ไม่มี OAuth หรือระบบยืนยันตัวตน</strong>
         <p>
           เก็บแค่ชื่อผู้ให้บริการที่เลือกใน localStorage ไม่มี token
@@ -54,7 +54,7 @@ export default function MockLogin() {
       <button
         type="button"
         onClick={restore}
-        className="button secondary rounded-xl border border-slate-300 px-4 py-3"
+        className="button secondary rounded-xl border border-[var(--border)] px-4 py-3"
       >
         เปิดบัญชีจำลองที่เคยเลือก (Demo)
       </button>
@@ -65,7 +65,7 @@ export default function MockLogin() {
             type="button"
             aria-pressed={identity === provider}
             onClick={() => choose(provider)}
-            className={`button secondary rounded-xl border p-4 text-left font-semibold focus-visible:outline-2 focus-visible:outline-orange-600 ${identity === provider ? "border-orange-700 bg-orange-100" : "border-slate-300 bg-white"}`}
+            className={`button secondary rounded-xl border p-4 text-left font-semibold focus-visible:outline-2 focus-visible:outline-[var(--focus)] ${identity === provider ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-[var(--surface)]"}`}
           >
             ทดลองเลือก {provider}{" "}
             <span className="badge text-sm">
@@ -88,7 +88,7 @@ export default function MockLogin() {
           <p>ผู้ใช้จำลอง: Maker · {identity}</p>
           <button
             type="button"
-            className="button secondary rounded-xl border border-slate-300 px-4 py-3"
+            className="button secondary rounded-xl border border-[var(--border)] px-4 py-3"
             onClick={logout}
           >
             ออกจากบัญชีจำลอง
@@ -97,7 +97,7 @@ export default function MockLogin() {
       )}
       <Link
         href="/submit"
-        className="button primary inline-block rounded-xl bg-orange-700 px-5 py-3 font-semibold text-white"
+        className="button primary inline-block rounded-xl bg-[var(--accent)] px-5 py-3 font-semibold text-[var(--accent-foreground)]"
       >
         ไปสร้างร่างในเครื่อง (ไม่ต้องล็อกอิน)
       </Link>

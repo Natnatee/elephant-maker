@@ -36,7 +36,7 @@ export function StepGuide({ steps }: StepGuideProps) {
       <div
         aria-live="polite"
         aria-atomic="true"
-        className="rounded-2xl bg-[#fff7ed] p-5 text-[#172b45]"
+        className="rounded-2xl bg-[var(--surface-soft)] p-5 text-[var(--foreground)]"
       >
         <p className="eyebrow">
           ขั้นตอน {index + 1} / {steps.length}
@@ -44,7 +44,7 @@ export function StepGuide({ steps }: StepGuideProps) {
         <h3 className="mt-2 text-xl font-semibold">{step.title}</h3>
         <p className="mt-3 leading-relaxed">{step.description}</p>
         {step.safetyNote && (
-          <p className="mt-4 font-semibold text-[#9a3412]">
+          <p className="mt-4 font-semibold text-[var(--warning-text)]">
             ข้อควรระวัง: {step.safetyNote}
           </p>
         )}

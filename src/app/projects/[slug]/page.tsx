@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function ProjectPage({ params }: Props) {
   return (
-    <main className="bg-[#fffaf3] py-8 text-[#172b45] sm:py-12">
+    <main className="bg-[var(--background)] py-8 text-[var(--foreground)] sm:py-12">
       <div className="container space-y-8">
         <Link href="/" className="button secondary">
           ← กลับไปสำรวจผลงาน
@@ -64,13 +64,13 @@ function ProjectSkeleton() {
     >
       <span className="sr-only">กำลังโหลดรายละเอียดโปรเจกต์</span>
       <div aria-hidden="true" className="grid lg:grid-cols-2">
-        <div className="min-h-64 bg-[#e8e9df] sm:min-h-96" />
+        <div className="min-h-64 bg-[var(--surface-soft)] sm:min-h-96" />
         <div className="space-y-5 p-6 sm:p-9">
-          <div className="h-5 w-32 rounded bg-slate-100" />
-          <div className="h-10 w-4/5 rounded bg-slate-100" />
-          <div className="h-10 w-3/5 rounded bg-slate-100" />
-          <div className="h-20 rounded bg-slate-100" />
-          <div className="h-12 w-48 rounded bg-orange-100" />
+          <div className="h-5 w-32 rounded bg-[var(--surface-soft)]" />
+          <div className="h-10 w-4/5 rounded bg-[var(--surface-soft)]" />
+          <div className="h-10 w-3/5 rounded bg-[var(--surface-soft)]" />
+          <div className="h-20 rounded bg-[var(--surface-soft)]" />
+          <div className="h-12 w-48 rounded bg-[var(--accent-soft)]" />
         </div>
       </div>
     </section>
@@ -91,7 +91,7 @@ async function ProjectContent({ params }: Props) {
         className="panel grid overflow-hidden lg:grid-cols-2"
         aria-labelledby="project-title"
       >
-        <div className="relative min-h-64 bg-[#ffedd5] sm:min-h-96">
+        <div className="relative min-h-64 bg-[var(--accent-soft)] sm:min-h-96">
           <Image
             src={project.cover}
             alt={`ภาพประกอบแนวคิด ${project.title}`}
@@ -119,7 +119,7 @@ async function ProjectContent({ params }: Props) {
             {project.title}
           </h1>
           <p className="muted leading-relaxed">{project.summary}</p>
-          <dl className="grid grid-cols-3 gap-3 border-y border-[#172b45]/10 py-4 text-sm">
+          <dl className="grid grid-cols-3 gap-3 border-y border-[var(--border)] py-4 text-sm">
             <div>
               <dt className="muted">งบประมาณ</dt>
               <dd className="mt-1 font-semibold">
@@ -162,7 +162,7 @@ async function ProjectContent({ params }: Props) {
       </section>
 
       <aside
-        className="rounded-2xl border border-orange-200 bg-orange-50 p-6 text-[#9a3412]"
+        className="rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-bg)] p-6 text-[var(--warning-text)]"
         aria-label="ข้อจำกัดของตัวอย่าง"
       >
         <h2 className="font-bold">เรียนรู้จากแนวคิด ไม่ใช่คู่มือลงมือจริง</h2>
@@ -188,7 +188,7 @@ async function ProjectContent({ params }: Props) {
                 <caption className="sr-only">
                   รายการวัสดุสมมติ ราคาต่อรายการ ไม่ใช่ใบเสนอราคา
                 </caption>
-                <thead className="border-b border-[#172b45]/15">
+                <thead className="border-b border-[var(--border)]">
                   <tr>
                     <th scope="col" className="py-3 pr-4">
                       รายการ
@@ -205,7 +205,7 @@ async function ProjectContent({ params }: Props) {
                   {materials.map((material) => (
                     <tr
                       key={material.id}
-                      className="border-b border-[#172b45]/10"
+                      className="border-b border-[var(--border)]"
                     >
                       <td className="py-4 pr-4">
                         {material.name}
@@ -253,7 +253,7 @@ async function ProjectContent({ params }: Props) {
                 {files.map((file) => (
                   <li
                     key={file.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#fff7ed] p-4"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[var(--surface-soft)] p-4"
                   >
                     <div className="min-w-0">
                       <p className="break-all font-medium">{file.name}</p>
@@ -277,7 +277,7 @@ async function ProjectContent({ params }: Props) {
             {firmwareReleases.map((release) => (
               <div
                 key={release.id}
-                className="space-y-4 rounded-2xl border border-orange-200 p-5"
+                className="space-y-4 rounded-2xl border border-[var(--border)] p-5"
               >
                 <h3 className="font-semibold">
                   Firmware {release.version} · DEMO
@@ -307,7 +307,7 @@ async function ProjectContent({ params }: Props) {
                 </ul>
                 <fieldset
                   disabled
-                  className="space-y-2 rounded-xl bg-[#fff7ed] p-4"
+                  className="space-y-2 rounded-xl bg-[var(--surface-soft)] p-4"
                 >
                   <legend className="px-1 font-semibold">
                     เช็กลิสต์ก่อนใช้งานจริง · เดโมปิดไว้
@@ -381,7 +381,7 @@ async function ProjectContent({ params }: Props) {
                   width={56}
                   height={56}
                   unoptimized
-                  className="rounded-full bg-orange-100 object-cover"
+                  className="rounded-full bg-[var(--accent-soft)] object-cover"
                 />
                 <h2 id="author-title" className="font-semibold">
                   {owner.name}

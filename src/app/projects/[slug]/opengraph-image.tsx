@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
 import { getProjectBySlug } from "@/lib/data";
+import { getSharePalette } from "@/lib/theme";
 
 export const alt = "Elephant Maker — sample project, not a validated guide";
 export const size = { width: 1200, height: 630 };
@@ -16,6 +17,7 @@ export default async function OpenGraphImage({
   if (!project) notFound();
   // Slugs are English in this dataset, so the image needs no fetched Thai font.
   const title = project.slug.replace(/-/g, " ");
+  const palette = await getSharePalette();
   return new ImageResponse(
     <div
       style={{
@@ -24,17 +26,17 @@ export default async function OpenGraphImage({
         justifyContent: "space-between",
         width: "100%",
         height: "100%",
-        background: "#172b45",
-        color: "#fff7ed",
+        background: palette.background,
+        color: palette.foreground,
         padding: "64px",
-        borderLeft: "18px solid #f97316",
+        borderLeft: `18px solid ${palette.accent}`,
       }}
     >
       <div
         style={{
           display: "flex",
           fontSize: 28,
-          color: "#fb923c",
+          color: palette.accent,
           letterSpacing: 4,
         }}
       >
@@ -52,7 +54,7 @@ export default async function OpenGraphImage({
         {title}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ display: "flex", fontSize: 28, color: "#fdba74" }}>
+        <div style={{ display: "flex", fontSize: 28, color: palette.accent }}>
           SAMPLE PROJECT / SIMULATION ONLY
         </div>
         <div style={{ display: "flex", fontSize: 24 }}>

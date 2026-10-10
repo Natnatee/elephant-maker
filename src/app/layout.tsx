@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import { ElephantMark } from "@/components/icons";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,25 +25,11 @@ export default function RootLayout({
           ข้ามไปเนื้อหา
         </a>
         <SiteHeader />
-        <div id="main-content" tabIndex={-1} className="site-content">
-          {children}
+        <div className="app-body">
+          <div id="main-content" tabIndex={-1} className="site-content">
+            {children}
+          </div>
         </div>
-        <footer className="site-footer">
-          <div className="container footer-inner">
-            <div className="brand">
-              <ElephantMark size={32} />
-              <span>
-                elephant<span className="brand-light">maker</span>
-              </span>
-            </div>
-            <p>แบ่งปันสิ่งที่คุณทำ ให้เป็นสิ่งที่ใคร ๆ ก็ทำได้</p>
-            <Link href="/submit">เริ่มแบ่งปันผลงาน ↗</Link>
-          </div>
-          <div className="container footer-note">
-            ต้นแบบเพื่อทดลอง UX · ข้อมูลและสมาชิกเป็นเดโม ·
-            ยังไม่มีการอัปโหลดหรือแฟลชจริง
-          </div>
-        </footer>
       </body>
     </html>
   );

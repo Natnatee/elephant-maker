@@ -1,16 +1,38 @@
-import MockLogin from "@/components/mock-login";
+import { Suspense } from "react";
+import AuthLogin from "@/components/auth-login";
+import { getSafeNextPath } from "@/lib/auth/redirect";
 
-export default function LoginPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+async function LoginContent({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
   return (
-    <main className="container mx-auto min-h-screen max-w-2xl space-y-6 bg-[#fff9ed] px-4 py-12 text-[#152b46] sm:px-8">
+    <AuthLogin
+      next={getSafeNextPath(
+        typeof params.next === "string" ? params.next : undefined,
+      )}
+      error={typeof params.error === "string" ? params.error : undefined}
+    />
+  );
+}
+
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  return (
+    <main className="container mx-auto min-h-screen max-w-2xl space-y-6 bg-[var(--background)] px-4 py-12 text-[var(--foreground)] sm:px-8">
       <header className="space-y-3">
-        <p className="eyebrow text-sm font-bold text-orange-800">
-          ELEPHANT MAKER • DEMO
+        <p className="text-sm font-bold text-[var(--brand)]">ELEPHANT MAKER</p>
+        <h1 className="text-3xl font-bold">เข้าสู่ระบบบัญชีผู้สร้าง</h1>
+        <p className="text-[var(--muted)]">
+          ใช้บัญชี Google หรือ Facebook เพื่อดูข้อมูลสมาชิกและร่างผลงานของคุณ
         </p>
-        <h1 className="text-3xl font-bold">ลองเลือกบัญชีผู้สร้าง</h1>
-        <p className="muted">จำลองประสบการณ์เข้าใช้งาน โดยไม่เชื่อมบัญชีจริง</p>
       </header>
-      <MockLogin />
+      <Suspense fallback={<p role="status">กำลังเตรียมการเข้าสู่ระบบ…</p>}>
+        <LoginContent searchParams={searchParams} />
+      </Suspense>
     </main>
   );
 }

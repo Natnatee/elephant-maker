@@ -116,16 +116,20 @@ export function ElephantMark({ size = 38 }: { size?: number }) {
       fill="none"
       aria-hidden="true"
     >
-      <rect width="48" height="48" rx="15" fill="#18334C" />
+      <rect width="48" height="48" rx="15" fill="var(--brand)" />
       <path
         d="M12 31V21c0-7 5-11 12-11h4c7 0 11 5 11 11v9c0 5-2 8-6 8-3 0-5-2-5-5h4c0 1 0 2 1 2s2-1 2-3v-5h-5v7h-6v-7h-6v7h-6v-3Z"
-        fill="#FFF8EE"
+        fill="var(--on-brand)"
       />
-      <path d="M25 15c-5 0-8 3-8 7s3 7 7 7" stroke="#18334C" strokeWidth="2" />
-      <circle cx="32" cy="19" r="1.5" fill="#18334C" />
+      <path
+        d="M25 15c-5 0-8 3-8 7s3 7 7 7"
+        stroke="var(--brand)"
+        strokeWidth="2"
+      />
+      <circle cx="32" cy="19" r="1.5" fill="var(--brand)" />
       <path
         d="m33 27 2 3"
-        stroke="#E9A25A"
+        stroke="var(--brand-muted)"
         strokeWidth="2"
         strokeLinecap="round"
       />

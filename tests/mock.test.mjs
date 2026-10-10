@@ -120,7 +120,89 @@ test("showcase does not force a complete guide; ready does", () => {
   assert.equal(
     drafts.validateStep({ ...drafts.emptyDraft(), readiness: "ready" }, 1)
       .length,
-    2,
+    1,
+  );
+  assert.deepEqual(
+    drafts.validateStep(
+      { ...drafts.emptyDraft(), readiness: "ready", steps: "ทำตามคู่มือ" },
+      1,
+    ),
+    [],
+  );
+  assert.deepEqual(
+    drafts.validateStep(
+      {
+        ...drafts.emptyDraft(),
+        readiness: "ready",
+        guideFiles: [
+          {
+            name: "guide.pdf",
+            size: 100,
+            type: "application/pdf",
+            kind: "document",
+          },
+        ],
+      },
+      1,
+    ),
+    [],
+  );
+});
+test("guide metadata accepts supported kinds and enforces size and MIME safety", () => {
+  for (const [type, kind] of Object.entries({
+    "image/jpeg": "image",
+    "image/png": "image",
+    "image/webp": "image",
+    "image/gif": "image",
+    "video/mp4": "video",
+    "video/webm": "video",
+    "video/quicktime": "video",
+    "application/pdf": "document",
+    "text/plain": "text",
+    "text/markdown": "text",
+  })) {
+    const file = { name: "guide", size: drafts.MAX_GUIDE_SIZE, type, kind };
+    assert.ok(drafts.isGuideFileMetadata(file));
+    assert.deepEqual(drafts.guideFileMetadata(file), file);
+    for (const size of [0, -1, NaN, Infinity, drafts.MAX_GUIDE_SIZE + 1])
+      assert.equal(drafts.isGuideFileMetadata({ ...file, size }), false);
+    assert.equal(
+      drafts.isGuideFileMetadata({ ...file, kind: "invalid" }),
+      false,
+    );
+  }
+  for (const type of [
+    "image/svg+xml",
+    "text/html",
+    "application/javascript",
+    "application/x-msdownload",
+  ])
+    assert.equal(
+      drafts.guideFileMetadata({ name: "guide.md", size: 100, type }),
+      null,
+    );
+  assert.equal(
+    drafts.guideFileMetadata({ name: "guide.md", size: 100, type: "" }).kind,
+    "text",
+  );
+  assert.equal(
+    drafts.guideFileMetadata({ name: "guide.txt", size: 100, type: "" }).type,
+    "text/plain",
+  );
+  assert.equal(
+    drafts.guideFileMetadata({ name: "guide.exe", size: 100, type: "" }),
+    null,
+  );
+  assert.ok(
+    drafts.validateStep(
+      {
+        ...drafts.emptyDraft(),
+        guideFiles: [
+          { name: "bad.html", size: 100, type: "text/html", kind: "text" },
+        ],
+      },
+      1,
+    ).length,
   );
 });
 test("firmware validation checks file type, size, mode and unique hex offsets", () => {
@@ -185,6 +267,16 @@ test("draft round-trip stores metadata only", () => {
   const draft = {
     ...drafts.emptyDraft(),
     title: "ตัวอย่าง",
+    compatibilityNotes: "ใช้ได้ตามความเหมาะสม",
+    guideFiles: [
+      {
+        name: "guide.pdf",
+        size: 100,
+        type: "application/pdf",
+        kind: "document",
+        bytes: "never-store",
+      },
+    ],
     cover: {
       name: "photo.png",
       size: 100,
@@ -199,16 +291,28 @@ test("draft round-trip stores metadata only", () => {
   assert.equal(saved.draft.title, draft.title);
   assert.equal(saved.step, 1);
   assert.equal(saved.draft.cover.name, "photo.png");
+  assert.equal(saved.draft.compatibilityNotes, draft.compatibilityNotes);
+  assert.deepEqual(saved.draft.guideFiles, [
+    { name: "guide.pdf", size: 100, type: "application/pdf", kind: "document" },
+  ]);
+  const corrupt = JSON.parse(memory.get(drafts.DRAFT_KEY));
+  corrupt.draft.guideFiles[0].type = "text/html";
+  memory.set(drafts.DRAFT_KEY, JSON.stringify(corrupt));
+  assert.throws(() => drafts.loadDraft(), /Invalid guide metadata/);
 });
 test("old drafts without cover resume and malformed drafts fail safely", () => {
   memory.clear();
   const old = drafts.emptyDraft();
   delete old.cover;
+  delete old.guideFiles;
+  delete old.compatibilityNotes;
   memory.set(
     drafts.DRAFT_KEY,
     JSON.stringify({ schema: 1, draft: old, step: 99 }),
   );
   assert.equal(drafts.loadDraft().draft.cover, null);
+  assert.deepEqual(drafts.loadDraft().draft.guideFiles, []);
+  assert.equal(drafts.loadDraft().draft.compatibilityNotes, "");
   assert.equal(drafts.loadDraft().step, 0);
   memory.set(drafts.DRAFT_KEY, "{broken");
   assert.throws(() => drafts.loadDraft());

@@ -15,15 +15,17 @@ import {
   validateStep,
   MAX_BIN_SIZE,
   isCoverMetadata,
+  guideFileMetadata,
+  type GuideFileMetadata,
   requiresGuide,
   type Draft,
 } from "@/lib/drafts";
 
 const stages = ["ข้อมูลทั่วไป", "คู่มือการทำ", "ไฟล์และการแบ่งปัน"];
 const inputClass =
-  "mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 text-[#152b46] focus:outline-2 focus:outline-orange-600";
+  "mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-[var(--foreground)] focus:outline-2 focus:outline-[var(--focus)]";
 const buttonClass =
-  "button rounded-xl border border-slate-300 px-5 py-3 font-semibold focus-visible:outline-2 focus-visible:outline-orange-600 disabled:opacity-50";
+  "button rounded-xl border border-[var(--border)] px-5 py-3 font-semibold focus-visible:outline-2 focus-visible:outline-[var(--focus)] disabled:opacity-50";
 
 export default function SubmitForm() {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
@@ -76,7 +78,7 @@ export default function SubmitForm() {
           </p>
         )}
         {draft.cover && !coverUrl && (
-          <p className="text-sm font-semibold text-orange-800">
+          <p className="text-sm font-semibold text-[var(--warning-text)]">
             ไม่มีตัวอย่างรูปในร่างที่เปิด
             กรุณากลับขั้นข้อมูลทั่วไปแล้วเลือกรูปปกใหม่
             เพราะไม่ได้เก็บข้อมูลภาพไว้
@@ -120,7 +122,7 @@ export default function SubmitForm() {
       setPreview(false);
       setErrors([]);
       setMessage(
-        `เปิดร่างแล้ว • มีเฉพาะข้อมูลไฟล์ ไม่ได้เก็บภาพหรือไฟล์ binary${saved.draft.cover ? " • กรุณาเลือกรูปปกใหม่เพื่อดูตัวอย่าง" : ""}`,
+        `เปิดร่างแล้ว • มีเฉพาะข้อมูลไฟล์ ไม่ได้เก็บภาพหรือไฟล์ binary • ต้องเลือกไฟล์คู่มือใหม่เมื่อเปิดร่างต่อ${saved.draft.cover ? " • กรุณาเลือกรูปปกใหม่เพื่อดูตัวอย่าง" : ""}`,
       );
     } catch {
       setErrors([
@@ -139,6 +141,61 @@ export default function SubmitForm() {
     if (issues.length) return;
     if (step < 2) move(step + 1);
     else save(true);
+  }
+  function chooseGuideFiles(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    const metadata = files.map(guideFileMetadata);
+    if (metadata.some((file) => file === null)) {
+      setErrors([
+        "เลือก JPEG, PNG, WebP, GIF, MP4, WebM, MOV, PDF, TXT หรือ Markdown ที่ไม่ว่างและไม่เกิน 50 MiB ต่อไฟล์",
+      ]);
+      return;
+    }
+    if (metadata.length)
+      update("guideFiles", [
+        ...draft.guideFiles,
+        ...(metadata as GuideFileMetadata[]),
+      ]);
+  }
+  function guideFileList(removable = false) {
+    return (
+      <div className="space-y-2">
+        <ul className="space-y-2">
+          {draft.guideFiles.map((file, index) => (
+            <li
+              key={index}
+              className="flex flex-wrap items-center gap-3 break-words"
+            >
+              <span>
+                {file.name} • {file.size.toLocaleString()} bytes • {file.kind}
+              </span>
+              {removable && (
+                <button
+                  type="button"
+                  className={`${buttonClass} secondary`}
+                  aria-label={`ลบไฟล์ ${file.name}`}
+                  onClick={() =>
+                    update(
+                      "guideFiles",
+                      draft.guideFiles.filter(
+                        (_, position) => position !== index,
+                      ),
+                    )
+                  }
+                >
+                  ลบไฟล์
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+        <p className="muted text-sm">
+          เก็บเฉพาะชื่อ ขนาด และชนิดไฟล์ ไม่มีการอัปโหลดจริง ไม่เก็บเนื้อหาไฟล์
+          เมื่อเปิดร่างต่อจะต้องเลือกไฟล์ใหม่
+        </p>
+      </div>
+    );
   }
   function chooseFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
@@ -165,6 +222,7 @@ export default function SubmitForm() {
       | "title"
       | "summary"
       | "materials"
+      | "compatibilityNotes"
       | "steps"
       | "contact"
       | "chip"
@@ -200,8 +258,8 @@ export default function SubmitForm() {
     );
   }
   return (
-    <section className="panel space-y-6 rounded-2xl border border-slate-200 bg-[#fffcf5] p-5 text-[#152b46] sm:p-8">
-      <div className="rounded-xl bg-orange-100 p-4 text-sm leading-6">
+    <section className="panel space-y-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 text-[var(--foreground)] sm:p-8">
+      <div className="rounded-xl bg-[var(--accent-soft)] p-4 text-sm leading-6">
         <strong>ต้นแบบ • เก็บเฉพาะในเครื่องนี้</strong>
         <p>
           ไม่เผยแพร่ ไม่ส่งข้อมูลขึ้น backend และไม่มีเซิร์ฟเวอร์อัปโหลดหรือแฟลช
@@ -230,14 +288,14 @@ export default function SubmitForm() {
       <p
         role="status"
         aria-live="polite"
-        className="font-semibold text-green-800"
+        className="font-semibold text-[var(--success)]"
       >
         {message}
       </p>
       {errors.length > 0 && (
         <div
           role="alert"
-          className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-800"
+          className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] p-4 text-[var(--danger)]"
         >
           <p className="font-semibold">กรุณาตรวจสอบก่อนดำเนินการ</p>
           <ul className="list-inside list-disc">
@@ -262,6 +320,11 @@ export default function SubmitForm() {
           <p className="whitespace-pre-wrap break-words">{draft.materials}</p>
           <h3 className="font-bold">ขั้นตอนการทำ</h3>
           <p className="whitespace-pre-wrap break-words">{draft.steps}</p>
+          {guideFileList()}
+          <h3 className="font-bold">ความเข้ากันได้ / ข้อจำกัด</h3>
+          <p className="whitespace-pre-wrap break-words">
+            {draft.compatibilityNotes || "ไม่ระบุ"}
+          </p>
           <p className="break-words">
             ติดต่อ: {draft.contact || "ไม่ระบุ"} • สิทธิ์การใช้งาน:{" "}
             {draft.license || "ยังไม่ระบุ — ไม่ถือว่าอนุญาตให้นำไปใช้"}
@@ -306,7 +369,7 @@ export default function SubmitForm() {
               <li
                 key={stage}
                 aria-current={step === index ? "step" : undefined}
-                className={`rounded-xl p-3 text-sm ${step === index ? "bg-[#152b46] text-white" : "bg-slate-100"}`}
+                className={`rounded-xl p-3 text-sm ${step === index ? "bg-[var(--accent)] text-[var(--accent-foreground)]" : "bg-[var(--surface-soft)]"}`}
               >
                 <span className="font-bold">
                   {index + 1}. {stage}
@@ -355,7 +418,7 @@ export default function SubmitForm() {
                   {draft.cover && (
                     <button
                       type="button"
-                      className="text-sm text-red-800 underline"
+                      className="text-sm text-[var(--danger)] underline"
                       onClick={() => {
                         setCoverUrl(null);
                         update("cover", null);
@@ -411,23 +474,40 @@ export default function SubmitForm() {
             )}
             {step === 1 && (
               <>
-                {textField(
-                  "materials",
-                  "วัสดุและอุปกรณ์",
-                  true,
-                  requiresGuide(draft.readiness),
-                )}
+                {textField("materials", "วัสดุและอุปกรณ์", true, false)}
                 {textField(
                   "steps",
                   "ขั้นตอนการทำ",
                   true,
-                  requiresGuide(draft.readiness),
+                  requiresGuide(draft.readiness) &&
+                    draft.guideFiles.length === 0,
+                )}
+                <label className="block font-semibold">
+                  ไฟล์ประกอบคู่มือ (ไม่บังคับหากมีข้อความขั้นตอน)
+                  <input
+                    type="file"
+                    multiple
+                    className={inputClass}
+                    accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,application/pdf,text/plain,text/markdown,.jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.mov,.pdf,.txt,.md"
+                    onChange={chooseGuideFiles}
+                  />
+                </label>
+                <p className="muted text-sm">
+                  รองรับ JPEG, PNG, WebP, GIF, MP4, WebM, MOV, PDF, TXT และ
+                  Markdown ไม่เกิน 50 MiB ต่อไฟล์
+                </p>
+                {guideFileList(true)}
+                {textField(
+                  "compatibilityNotes",
+                  "ความเข้ากันได้ / ข้อจำกัด",
+                  true,
+                  false,
                 )}
                 <p className="muted text-sm">
-                  บังคับเฉพาะผลงานพร้อมทำตาม (ready)
-                  ส่วนงานโชว์หรืองานกำลังพัฒนายังไม่จำเป็นต้องมีคู่มือครบ
-                  สถานะนี้ไม่ใช่การรับรองความปลอดภัย เขียนทีละขั้น
-                  ระบุรุ่นอุปกรณ์ จุดตรวจสอบ และข้อควรระวังเมื่อพร้อม
+                  งานพร้อมทำตาม (ready)
+                  ต้องมีข้อความขั้นตอนหรือไฟล์คู่มืออย่างน้อยหนึ่งไฟล์
+                  งานโชว์ไม่บังคับคู่มือ วัสดุและรุ่นรถหรืออุปกรณ์ไม่บังคับ
+                  สถานะนี้ไม่ใช่การรับรองความปลอดภัย
                 </p>
               </>
             )}
@@ -451,7 +531,7 @@ export default function SubmitForm() {
                 <label className="flex items-center gap-3 font-semibold">
                   <input
                     type="checkbox"
-                    className="h-5 w-5 accent-orange-600"
+                    className="h-5 w-5 accent-[var(--accent)]"
                     checked={draft.firmware}
                     onChange={(event) =>
                       update("firmware", event.target.checked)
@@ -460,10 +540,10 @@ export default function SubmitForm() {
                   เพิ่มข้อมูลไฟล์ firmware .bin (ไม่บังคับ)
                 </label>
                 {draft.firmware && (
-                  <fieldset className="space-y-5 rounded-xl border border-slate-300 p-4">
+                  <fieldset className="space-y-5 rounded-xl border border-[var(--border)] p-4">
                     <legend className="px-2 font-bold">ข้อมูล Firmware</legend>
                     <Link
-                      className="font-semibold text-orange-800 underline"
+                      className="font-semibold text-[var(--accent)] underline"
                       href="/submit/firmware-guide"
                     >
                       อ่านคู่มือเตรียม firmware สำหรับผู้เริ่มต้น
@@ -513,7 +593,10 @@ export default function SubmitForm() {
                     </label>
                     <ul className="space-y-4">
                       {draft.files.map((file, index) => (
-                        <li key={index} className="rounded-xl bg-white p-3">
+                        <li
+                          key={index}
+                          className="rounded-xl bg-[var(--surface)] p-3"
+                        >
                           <p className="break-words">
                             {file.name} • {file.size.toLocaleString()} bytes
                             (metadata เท่านั้น)
@@ -545,7 +628,7 @@ export default function SubmitForm() {
                           )}
                           <button
                             type="button"
-                            className="mt-3 text-sm text-red-800 underline"
+                            className="mt-3 text-sm text-[var(--danger)] underline"
                             onClick={() =>
                               update(
                                 "files",
@@ -562,7 +645,7 @@ export default function SubmitForm() {
                 )}
               </>
             )}
-            <div className="flex flex-wrap justify-between gap-3 border-t border-slate-200 pt-5">
+            <div className="flex flex-wrap justify-between gap-3 border-t border-[var(--border)] pt-5">
               <button
                 type="button"
                 disabled={step === 0}
@@ -573,7 +656,7 @@ export default function SubmitForm() {
               </button>
               <button
                 type="submit"
-                className={`${buttonClass} primary border-orange-700 bg-orange-700 text-white`}
+                className={`${buttonClass} primary border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-foreground)]`}
               >
                 {step === 2 ? "บันทึกร่างและดูตัวอย่าง" : "ถัดไป"}
               </button>

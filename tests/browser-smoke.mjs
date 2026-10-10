@@ -22,6 +22,60 @@ page.on("pageerror", (error) => errors.push(error.message));
 const origin = process.env.TEST_BASE_URL || "http://localhost:3000";
 try {
   await page.goto(origin, { waitUntil: "networkidle" });
+  const themeChecks = await page.evaluate(() => {
+    const probe = document.createElement("span");
+    document.body.appendChild(probe);
+    const color = (token) => {
+      probe.style.color = `var(${token})`;
+      return getComputedStyle(probe).color;
+    };
+    const checks = {
+      primary:
+        getComputedStyle(document.querySelector(".gallery-toolbar .primary"))
+          .backgroundColor === color("--accent"),
+
+      logo:
+        getComputedStyle(document.querySelector(".brand svg rect")).fill ===
+        color("--brand"),
+    };
+    probe.remove();
+    return checks;
+  });
+  assert.deepEqual(themeChecks, { primary: true, logo: true });
+  console.log("PASS global theme tokens for gallery upload action/logo");
+  assert.equal(
+    await page.locator(".hero, .value-strip, .maker-banner").count(),
+    0,
+  );
+  assert.equal(await page.locator(".site-sidebar").isVisible(), true);
+  const cardLayout = await page
+    .locator(".project-card")
+    .first()
+    .evaluate((card) => ({
+      top: card.getBoundingClientRect().top,
+      titleSize: parseFloat(
+        getComputedStyle(card.querySelector("h2")).fontSize,
+      ),
+      authorSize: parseFloat(
+        getComputedStyle(card.querySelector(".card-author")).fontSize,
+      ),
+    }));
+  assert.ok(
+    cardLayout.top < 300,
+    "Cards must appear immediately without a hero",
+  );
+  assert.ok(cardLayout.titleSize >= 18 && cardLayout.authorSize >= 16);
+  assert.equal(await page.locator("#project-filters").count(), 0);
+  await page.getByRole("button", { name: /^ตัวกรอง/ }).click();
+  await page
+    .getByRole("combobox", { name: "กรองงบประมาณ" })
+    .selectOption("500");
+  assert.equal(await page.locator(".project-card").count(), 5);
+  await page.getByRole("button", { name: "ล้างตัวกรองทั้งหมด" }).click();
+  await page.getByRole("button", { name: /^ตัวกรอง/ }).click();
+  console.log(
+    "PASS sidebar/card-first/readable typography/collapsible filters",
+  );
   assert.equal(await page.locator(".project-card").count(), 6);
   await page.getByRole("button", { name: "ยานยนต์", exact: true }).click();
   assert.equal(await page.locator(".project-card").count(), 1);
@@ -85,7 +139,7 @@ try {
   assert.equal(draft.draft.readiness, "showcase");
   console.log("PASS wizard showcase/save/resume without forced guide");
 
-  await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
+  await page.goto(`${origin}/login/demo`, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: /ทดลองเลือก Google/ }).click();
   assert.equal(
     await page.evaluate(() =>
@@ -102,7 +156,38 @@ try {
     ),
     null,
   );
-  console.log("PASS mock account select/logout");
+  console.log("PASS isolated mock account select/logout");
+
+  await page.route("**/auth/v1/settings", (route) =>
+    route.fulfill({ json: { external: { google: false, facebook: false } } }),
+  );
+  await page.goto(`${origin}/login`, { waitUntil: "networkidle" });
+  assert.equal(await page.getByRole("button", { name: /TikTok/ }).count(), 0);
+  await page
+    .getByRole("button", { name: "เข้าสู่ระบบด้วย Google", exact: true })
+    .click();
+  await page
+    .getByRole("status")
+    .filter({ hasText: "ยังไม่ได้เปิด Google" })
+    .waitFor();
+  assert.equal(new URL(page.url()).pathname, "/login");
+  await page.goto(`${origin}/account`, { waitUntil: "networkidle" });
+  await page.waitForURL("**/login?next=/account");
+  assert.equal(new URL(page.url()).pathname, "/login");
+  const callback = await page.request.get(
+    `${origin}/auth/callback?error=unsafe-message`,
+    { maxRedirects: 0 },
+  );
+  assert.equal(callback.status(), 303);
+  assert.ok(callback.headers().location.endsWith("/login?error=oauth_failed"));
+  const denied = await page.request.post(`${origin}/auth/signout`, {
+    headers: { origin: "https://evil.invalid" },
+    maxRedirects: 0,
+  });
+  assert.equal(denied.status(), 403);
+  console.log(
+    "PASS real login setup error/anonymous account/callback/signout CSRF",
+  );
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(origin, { waitUntil: "networkidle" });

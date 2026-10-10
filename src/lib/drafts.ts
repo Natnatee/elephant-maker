@@ -1,6 +1,65 @@
 export const DRAFT_KEY = "elephant-maker:submission:v1";
 export const MAX_BIN_SIZE = 16 * 1024 * 1024;
 export const MAX_COVER_SIZE = 8 * 1024 * 1024;
+export const MAX_GUIDE_SIZE = 50 * 1024 * 1024;
+const guideTypes = {
+  "image/jpeg": "image",
+  "image/png": "image",
+  "image/webp": "image",
+  "image/gif": "image",
+  "video/mp4": "video",
+  "video/webm": "video",
+  "video/quicktime": "video",
+  "application/pdf": "document",
+  "text/plain": "text",
+  "text/markdown": "text",
+} as const;
+export type GuideFileMetadata = {
+  name: string;
+  size: number;
+  type: keyof typeof guideTypes;
+  kind: "image" | "video" | "document" | "text";
+};
+export function guideFileMetadata(file: {
+  name: string;
+  size: number;
+  type: string;
+}): GuideFileMetadata | null {
+  // Some browsers omit MIME types for plain text and Markdown files only.
+  const type =
+    file.type ||
+    (/\.md$/i.test(file.name)
+      ? "text/markdown"
+      : /\.txt$/i.test(file.name)
+        ? "text/plain"
+        : "");
+  if (!Object.hasOwn(guideTypes, type)) return null;
+  const allowedType = type as GuideFileMetadata["type"];
+  const metadata = {
+    name: file.name,
+    size: file.size,
+    type: allowedType,
+    kind: guideTypes[allowedType],
+  };
+  return isGuideFileMetadata(metadata) ? metadata : null;
+}
+export function isGuideFileMetadata(
+  value: unknown,
+): value is GuideFileMetadata {
+  if (!value || typeof value !== "object") return false;
+  const file = value as Record<string, unknown>;
+  return (
+    typeof file.name === "string" &&
+    !!file.name.trim() &&
+    typeof file.size === "number" &&
+    Number.isFinite(file.size) &&
+    file.size > 0 &&
+    file.size <= MAX_GUIDE_SIZE &&
+    typeof file.type === "string" &&
+    Object.hasOwn(guideTypes, file.type) &&
+    file.kind === guideTypes[file.type as GuideFileMetadata["type"]]
+  );
+}
 export type CoverMetadata = {
   name: string;
   size: number;
@@ -29,6 +88,8 @@ export type Draft = {
   cover: CoverMetadata | null;
   materials: string;
   steps: string;
+  guideFiles: GuideFileMetadata[];
+  compatibilityNotes: string;
   contact: string;
   license: string;
   firmware: boolean;
@@ -46,6 +107,8 @@ export const emptyDraft = (): Draft => ({
   cover: null,
   materials: "",
   steps: "",
+  guideFiles: [],
+  compatibilityNotes: "",
   contact: "",
   license: "",
   firmware: false,
@@ -70,9 +133,17 @@ export function validateStep(draft: Draft, step: number): string[] {
     errors.push(
       "รูปปกต้องเป็น JPEG, PNG หรือ WebP ขนาดมากกว่า 0 และไม่เกิน 8 MiB",
     );
-  if (step === 1 && requiresGuide(draft.readiness)) {
-    required(draft.materials, "วัสดุและอุปกรณ์");
-    required(draft.steps, "ขั้นตอนการทำ");
+  if (step === 1) {
+    if (
+      requiresGuide(draft.readiness) &&
+      !draft.steps.trim() &&
+      !draft.guideFiles.length
+    )
+      errors.push("กรุณาระบุขั้นตอนการทำหรือเลือกไฟล์คู่มืออย่างน้อยหนึ่งไฟล์");
+    if (!draft.guideFiles.every(isGuideFileMetadata))
+      errors.push(
+        "ไฟล์คู่มือต้องเป็นรูป วิดีโอ PDF ข้อความ หรือ Markdown ที่ไม่ว่างและไม่เกิน 50 MiB ต่อไฟล์",
+      );
   }
   if (step === 2 && draft.firmware) {
     required(draft.chip, "ชิป");
@@ -122,6 +193,12 @@ export function saveDraft(draft: Draft, step: number): void {
           type: draft.cover.type,
         }
       : null,
+    guideFiles: draft.guideFiles.map(({ name, size, type, kind }) => ({
+      name,
+      size,
+      type,
+      kind,
+    })),
     files: draft.files.map(({ name, size, offset }) => ({
       name,
       size,
@@ -156,6 +233,8 @@ export function loadDraft(): {
     if (
       key !== "files" &&
       key !== "cover" &&
+      key !== "guideFiles" &&
+      !(key === "compatibilityNotes" && data[key] === undefined) &&
       typeof data[key] !== typeof defaults[key as keyof Draft]
     )
       throw new Error("Invalid draft");
@@ -181,13 +260,26 @@ export function loadDraft(): {
     !isCoverMetadata(data.cover)
   )
     throw new Error("Invalid cover metadata");
+  if (
+    data.guideFiles !== undefined &&
+    (!Array.isArray(data.guideFiles) ||
+      !data.guideFiles.every(isGuideFileMetadata))
+  )
+    throw new Error("Invalid guide metadata");
   const draft = emptyDraft();
   for (const key of Object.keys(defaults)) {
-    if (key !== "cover") Object.assign(draft, { [key]: data[key] });
+    if (key !== "cover" && data[key] !== undefined)
+      Object.assign(draft, { [key]: data[key] });
   }
   draft.cover = isCoverMetadata(data.cover)
     ? { name: data.cover.name, size: data.cover.size, type: data.cover.type }
     : null;
+  draft.guideFiles = draft.guideFiles.map(({ name, size, type, kind }) => ({
+    name,
+    size,
+    type,
+    kind,
+  }));
   draft.files = draft.files.map(({ name, size, offset }) => ({
     name,
     size,
