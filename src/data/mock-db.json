@@ -1,0 +1,383 @@
+{
+  "profiles": [
+    {
+      "id": "maker-1",
+      "name": "นที · ช่างทดลอง",
+      "bio": "โปรไฟล์สมมติสำหรับสาธิตการแบ่งปันไอเดียอิเล็กทรอนิกส์ ไม่ใช่ผู้รับรองความปลอดภัย",
+      "avatar": "/images/kline.svg"
+    },
+    {
+      "id": "maker-2",
+      "name": "มะลิ · บ้านนักทำ",
+      "bio": "โปรไฟล์สมมติ ชอบสวนเล็กและงานออกแบบ 3D ผลงานทั้งหมดเป็นข้อมูลตัวอย่าง",
+      "avatar": "/images/garden.svg"
+    }
+  ],
+  "projects": [
+    {
+      "id": "p1",
+      "slug": "k-line-read-only-demo",
+      "title": "K-Line อ่านอย่างเดียว · ห้องทดลองจำลอง",
+      "summary": "ผลงานตัวอย่างแสดงหน้าจออ่านค่าจากข้อมูลจำลองเท่านั้น ไม่มีการเชื่อมต่อรถจริง ไม่มีคำสั่งเขียน ECU และไม่ใช่คู่มือที่ผ่านการทดสอบ",
+      "category": "ยานยนต์",
+      "cover": "/images/kline.svg",
+      "ownerId": "maker-1",
+      "status": "published",
+      "readiness": "showcase",
+      "budget": 850,
+      "durationMinutes": 90,
+      "difficulty": "intermediate",
+      "skills": ["อ่านข้อมูลจำลอง", "พื้นฐาน Serial", "ออกแบบหน้าจอ"],
+      "safetyNotes": [
+        "ห้ามนำเดโมนี้ต่อกับรถจริงหรือ ECU",
+        "ไม่มีวงจรป้องกันที่ผ่านการตรวจสอบและไม่มีเฟิร์มแวร์ใช้งานจริง",
+        "ไม่ส่งคำสั่งเขียน ลบข้อผิดพลาด หรือควบคุมอุปกรณ์"
+      ],
+      "publishedAt": "2026-09-01T09:00:00Z",
+      "featured": true
+    },
+    {
+      "id": "p2",
+      "slug": "balcony-watering-concept",
+      "title": "สวนระเบียง · ไอเดียรดน้ำจากขวด",
+      "summary": "ผลงานตัวอย่างวางแผนรดน้ำด้วยขวดเหลือใช้ เป็นแนวคิดที่ยังไม่ทดสอบอัตราการไหล ไม่ใช่คู่มือที่ผ่านการตรวจสอบ",
+      "category": "บ้านและสวน",
+      "cover": "/images/garden.svg",
+      "ownerId": "maker-2",
+      "status": "published",
+      "readiness": "showcase",
+      "budget": 120,
+      "durationMinutes": 40,
+      "difficulty": "beginner",
+      "skills": ["วางแผนสวน", "นำวัสดุกลับมาใช้"],
+      "safetyNotes": [
+        "หลีกเลี่ยงน้ำขังและตรวจการรั่วก่อนใช้งานจริง",
+        "ขอบขวดที่ตัดอาจคม ต้องมีผู้ดูแล"
+      ],
+      "publishedAt": "2026-09-02T09:00:00Z",
+      "featured": true
+    },
+    {
+      "id": "p3",
+      "slug": "modular-planter-concept",
+      "title": "กระถางโมดูลาร์ · แบบร่าง 3D",
+      "summary": "ผลงานตัวอย่างจัดวางกระถางต่อกัน ไม่มีไฟล์โมเดลพร้อมพิมพ์ และยังไม่ทดสอบความแข็งแรง",
+      "category": "งานพิมพ์ 3D",
+      "cover": "/images/3d.svg",
+      "ownerId": "maker-2",
+      "status": "published",
+      "readiness": "showcase",
+      "budget": 350,
+      "durationMinutes": 180,
+      "difficulty": "intermediate",
+      "skills": ["ออกแบบ 3D", "ประเมินวัสดุ"],
+      "safetyNotes": [
+        "เครื่องพิมพ์มีชิ้นส่วนร้อนและต้องระบายอากาศ",
+        "ไม่ใช้ชิ้นงานจำลองรับน้ำหนักหรือสัมผัสอาหาร"
+      ],
+      "publishedAt": "2026-09-03T09:00:00Z",
+      "featured": true
+    },
+    {
+      "id": "p4",
+      "slug": "seedling-tray-concept",
+      "title": "ถาดเพาะกล้า · สวนเล็กบนโต๊ะ",
+      "summary": "ผลงานตัวอย่างออกแบบการจัดถาดเพาะกล้า เป็นภาพแนวคิด ไม่ใช่คำแนะนำการปลูกที่ผ่านการทดลอง",
+      "category": "บ้านและสวน",
+      "cover": "/images/garden.svg",
+      "ownerId": "maker-2",
+      "status": "published",
+      "readiness": "showcase",
+      "budget": 200,
+      "durationMinutes": 60,
+      "difficulty": "beginner",
+      "skills": ["จัดพื้นที่", "วางแผนเพาะกล้า"],
+      "safetyNotes": [
+        "ป้องกันน้ำหกใกล้ปลั๊กไฟ",
+        "ตรวจเชื้อราและอย่าใช้ภาชนะปนเปื้อน"
+      ],
+      "publishedAt": "2026-09-04T09:00:00Z",
+      "featured": false
+    },
+    {
+      "id": "p5",
+      "slug": "desk-cable-clip-concept",
+      "title": "คลิปจัดสาย · สเก็ตช์งานพิมพ์ 3D",
+      "summary": "ผลงานตัวอย่างแนวคิดคลิปจัดสาย ไม่มี STL ใช้งานจริง และยังไม่ตรวจขนาดหรือความแข็งแรง",
+      "category": "งานพิมพ์ 3D",
+      "cover": "/images/3d.svg",
+      "ownerId": "maker-1",
+      "status": "published",
+      "readiness": "showcase",
+      "budget": 80,
+      "durationMinutes": 75,
+      "difficulty": "beginner",
+      "skills": ["วัดขนาด", "ออกแบบ 3D"],
+      "safetyNotes": [
+        "ไม่บีบรัดสายไฟหรือใช้ใกล้ส่วนที่ร้อน",
+        "ไม่ใช้ชิ้นงานนี้เป็นอุปกรณ์ป้องกันทางไฟฟ้า"
+      ],
+      "publishedAt": "2026-09-05T09:00:00Z",
+      "featured": false
+    },
+    {
+      "id": "p6",
+      "slug": "garden-sensor-simulation",
+      "title": "เซนเซอร์สวน · แดชบอร์ดข้อมูลจำลอง",
+      "summary": "ผลงานตัวอย่างแสดงค่าความชื้นที่สร้างขึ้น ไม่มีการสอบเทียบเซนเซอร์และไม่ใช่ระบบควบคุมรดน้ำจริง",
+      "category": "อิเล็กทรอนิกส์",
+      "cover": "/images/sensor.svg",
+      "ownerId": "maker-1",
+      "status": "published",
+      "readiness": "showcase",
+      "budget": 450,
+      "durationMinutes": 120,
+      "difficulty": "intermediate",
+      "skills": ["ข้อมูลจำลอง", "ออกแบบแดชบอร์ด"],
+      "safetyNotes": [
+        "ไม่ต่อไฟบ้านหรือปั๊มน้ำจากตัวอย่างนี้",
+        "แยกน้ำออกจากอุปกรณ์ไฟฟ้าและต้องตรวจสอบวงจรก่อนใช้งานจริง"
+      ],
+      "publishedAt": "2026-09-06T09:00:00Z",
+      "featured": false
+    },
+    {
+      "id": "p7",
+      "slug": "private-workbench-draft",
+      "title": "โต๊ะทดลอง · ร่างส่วนตัว",
+      "summary": "ข้อมูลตัวอย่างฉบับร่าง ไม่เผยแพร่และไม่ใช่คู่มือที่ตรวจสอบแล้ว",
+      "category": "บ้านและสวน",
+      "cover": "/images/garden.svg",
+      "ownerId": "maker-2",
+      "status": "draft",
+      "readiness": "showcase",
+      "budget": 0,
+      "durationMinutes": 30,
+      "difficulty": "beginner",
+      "skills": [],
+      "safetyNotes": ["ยังไม่พร้อมใช้งาน"],
+      "publishedAt": null,
+      "featured": false
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "projectId": "p1",
+      "order": 1,
+      "title": "ทำความเข้าใจขอบเขตจำลอง",
+      "description": "อ่านข้อจำกัดและวางแผนหน้าจอ โดยใช้ข้อมูลสมมติเท่านั้น ไม่มีการต่อสายหรือพอร์ตกับรถ",
+      "safetyNote": "ห้ามเชื่อมต่อรถจริง"
+    },
+    {
+      "id": "s2",
+      "projectId": "p1",
+      "order": 2,
+      "title": "กำหนดชุดข้อมูลตัวอย่าง",
+      "description": "ร่างค่ารอบเครื่องและอุณหภูมิสมมติบนกระดาษ ติดป้ายทุกค่าว่าเป็นข้อมูลจำลอง ไม่ใช่การวินิจฉัยรถ"
+    },
+    {
+      "id": "s3",
+      "projectId": "p1",
+      "order": 3,
+      "title": "ทบทวนหน้าจออ่านอย่างเดียว",
+      "description": "ตรวจว่าหน้าจอแนวคิดไม่มีปุ่มเขียน ลบ หรือควบคุม ECU จบการสาธิตที่แบบร่าง โดยไม่มีการแฟลชอุปกรณ์"
+    },
+    {
+      "id": "s4",
+      "projectId": "p2",
+      "order": 1,
+      "title": "ร่างพื้นที่สวน",
+      "description": "วาดตำแหน่งกระถางและขวดบนกระดาษ ข้อมูลนี้เป็นตัวอย่าง ไม่ใช่ขั้นตอนติดตั้งจริง"
+    },
+    {
+      "id": "s5",
+      "projectId": "p2",
+      "order": 2,
+      "title": "ทบทวนความเสี่ยงน้ำขัง",
+      "description": "บันทึกคำถามเรื่องการไหลและการรั่วที่ต้องทดสอบก่อนพัฒนาต้นแบบ"
+    },
+    {
+      "id": "s6",
+      "projectId": "p3",
+      "order": 1,
+      "title": "สเก็ตช์รูปทรง",
+      "description": "ร่างแนวคิดกระถางบนกระดาษ ยังไม่มีขนาดหรือไฟล์พร้อมผลิต"
+    },
+    {
+      "id": "s7",
+      "projectId": "p3",
+      "order": 2,
+      "title": "รวบรวมข้อจำกัด",
+      "description": "ระบุประเด็นการระบายน้ำและความแข็งแรงที่ยังไม่ได้ทดสอบ"
+    },
+    {
+      "id": "s8",
+      "projectId": "p4",
+      "order": 1,
+      "title": "วางผังถาดตัวอย่าง",
+      "description": "วาดผังช่องเพาะและรายการคำถามเรื่องน้ำ แสง และความสะอาด โดยยังไม่ลงมือผลิต"
+    },
+    {
+      "id": "s9",
+      "projectId": "p5",
+      "order": 1,
+      "title": "ร่างคลิปจัดสาย",
+      "description": "วาดรูปทรงคลิปและบันทึกขนาดที่ต้องวัดในอนาคต ไม่มีไฟล์พิมพ์ให้ดาวน์โหลด"
+    },
+    {
+      "id": "s10",
+      "projectId": "p6",
+      "order": 1,
+      "title": "ร่างค่าความชื้นสมมติ",
+      "description": "เขียนค่าจำลองลงตารางและติดป้ายว่าไม่ใช่ค่าที่วัดจริง"
+    },
+    {
+      "id": "s11",
+      "projectId": "p6",
+      "order": 2,
+      "title": "ออกแบบสถานะแสดงผล",
+      "description": "ร่างแดชบอร์ดที่อ่านอย่างเดียว ไม่มีรีเลย์ ปั๊มน้ำ หรือคำสั่งควบคุม"
+    }
+  ],
+  "materials": [
+    {
+      "id": "m1",
+      "projectId": "p1",
+      "name": "บอร์ด ESP32 (รายการสมมติ ไม่ต้องต่อใช้งาน)",
+      "quantity": 1,
+      "unit": "ชิ้น",
+      "estimatedCost": 250,
+      "note": "งบประมาณตัวอย่างเท่านั้น"
+    },
+    {
+      "id": "m2",
+      "projectId": "p1",
+      "name": "ชุดอินเทอร์เฟซ K-Line (แนวคิด)",
+      "quantity": 1,
+      "unit": "ชุด",
+      "estimatedCost": 600,
+      "note": "ไม่มีวงจรหรือการรับรอง ห้ามต่อรถ"
+    },
+    {
+      "id": "m3",
+      "projectId": "p2",
+      "name": "ขวดและวัสดุสวน (ประมาณการ)",
+      "quantity": 1,
+      "unit": "ชุด",
+      "estimatedCost": 120
+    },
+    {
+      "id": "m4",
+      "projectId": "p3",
+      "name": "เส้นพิมพ์ 3D (ประมาณการ)",
+      "quantity": 1,
+      "unit": "ชุด",
+      "estimatedCost": 350
+    },
+    {
+      "id": "m5",
+      "projectId": "p4",
+      "name": "ถาดและวัสดุเพาะ (ประมาณการ)",
+      "quantity": 1,
+      "unit": "ชุด",
+      "estimatedCost": 200
+    },
+    {
+      "id": "m6",
+      "projectId": "p5",
+      "name": "เส้นพิมพ์ 3D (ประมาณการ)",
+      "quantity": 1,
+      "unit": "ชุด",
+      "estimatedCost": 80
+    },
+    {
+      "id": "m7",
+      "projectId": "p6",
+      "name": "บอร์ดและเซนเซอร์ (รายการสมมติ)",
+      "quantity": 1,
+      "unit": "ชุด",
+      "estimatedCost": 450
+    }
+  ],
+  "files": [
+    {
+      "id": "f1",
+      "projectId": "p1",
+      "name": "kline-demo-placeholder.bin",
+      "kind": "firmware",
+      "url": null,
+      "sizeBytes": null,
+      "mimeType": "application/octet-stream",
+      "license": "UNLICENSED",
+      "sha256": null,
+      "isDemo": true
+    },
+    {
+      "id": "f2",
+      "projectId": "p3",
+      "name": "planter-concept-placeholder.stl",
+      "kind": "model",
+      "url": null,
+      "sizeBytes": null,
+      "mimeType": "model/stl",
+      "license": "UNLICENSED",
+      "sha256": null,
+      "isDemo": true
+    },
+    {
+      "id": "f3",
+      "projectId": "p6",
+      "name": "sensor-demo-placeholder.bin",
+      "kind": "firmware",
+      "url": null,
+      "sizeBytes": null,
+      "mimeType": "application/octet-stream",
+      "license": "UNLICENSED",
+      "sha256": null,
+      "isDemo": true
+    }
+  ],
+  "firmwareReleases": [
+    {
+      "id": "r1",
+      "projectId": "p1",
+      "version": "0.0.0-demo",
+      "chip": "ESP32",
+      "board": "Concept board — not validated",
+      "license": "UNLICENSED",
+      "notes": "เมทาดาทาจำลองเท่านั้น ไม่มีไบนารี ไม่มีการแฟลช และห้ามต่อรถจริง",
+      "isDemo": true
+    },
+    {
+      "id": "r2",
+      "projectId": "p6",
+      "version": "0.0.0-demo",
+      "chip": "ESP32",
+      "board": "Concept board — not validated",
+      "license": "UNLICENSED",
+      "notes": "เมทาดาทาตัวอย่าง ไม่มีไบนารีหรือระบบรดน้ำจริง",
+      "isDemo": true
+    }
+  ],
+  "firmwareParts": [
+    { "id": "fp1", "releaseId": "r1", "fileId": "f1", "offset": "0x10000" },
+    { "id": "fp2", "releaseId": "r2", "fileId": "f3", "offset": "0x10000" }
+  ],
+  "tags": [
+    { "id": "t1", "name": "ข้อมูลจำลอง", "slug": "simulation" },
+    { "id": "t2", "name": "อ่านอย่างเดียว", "slug": "read-only" },
+    { "id": "t3", "name": "สวนเล็ก", "slug": "small-garden" },
+    { "id": "t4", "name": "แนวคิด 3D", "slug": "3d-concept" }
+  ],
+  "project_tags": [
+    { "projectId": "p1", "tagId": "t1" },
+    { "projectId": "p1", "tagId": "t2" },
+    { "projectId": "p2", "tagId": "t3" },
+    { "projectId": "p3", "tagId": "t4" },
+    { "projectId": "p4", "tagId": "t3" },
+    { "projectId": "p5", "tagId": "t4" },
+    { "projectId": "p6", "tagId": "t1" },
+    { "projectId": "p6", "tagId": "t3" }
+  ]
+}

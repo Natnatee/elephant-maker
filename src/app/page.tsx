@@ -1,69 +1,159 @@
+import Link from "next/link";
 import Image from "next/image";
+import { Icon } from "@/components/icons";
+import { ProjectExplorer } from "@/components/project-explorer";
+import { getProjects, getProfileById, getProjectTags } from "@/lib/data";
 
 export default function Home() {
+  const projects = getProjects().map((project) => ({
+    ...project,
+    ownerName: getProfileById(project.ownerId)?.name ?? "Maker",
+    tags: getProjectTags(project.id).map((tag) => tag.name),
+  }));
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main>
+      <section className="hero">
+        <div className="container hero-grid">
+          <div className="hero-copy">
+            <div className="eyebrow hero-eyebrow">
+              <span className="little-dot" />
+              พื้นที่ของคนชอบลงมือทำ
+            </div>
+            <h1>
+              ไอเดียของคุณ
+              <br />
+              อาจเป็น<span className="highlight-word">คำตอบ</span>
+              <br />
+              ของใครอีกคน<span className="orange-period">.</span>
+            </h1>
+            <p>
+              รวมโปรเจกต์ DIY ที่เริ่มจากปัญหาจริง
+              <br className="desktop-break" /> มีคู่มือ อุปกรณ์
+              และไฟล์ให้ทำตามในที่เดียว
+            </p>
+            <div className="hero-buttons">
+              <Link className="button primary" href="/#explore">
+                หาโปรเจกต์ที่ใช่ <Icon name="arrow" />
+              </Link>
+              <Link className="button hero-secondary" href="/submit">
+                แบ่งปันสิ่งที่คุณทำ <Icon name="plus" size={18} />
+              </Link>
+            </div>
+            <div className="hero-proof">
+              <div className="proof-icons">
+                <Icon name="book" size={17} />
+                <Icon name="chip" size={17} />
+                <Icon name="link" size={17} />
+              </div>
+              <span>
+                คู่มือเป็นขั้นตอน <b>·</b> ไฟล์ครบในหน้าเดียว <b>·</b> แชร์ง่าย
+              </span>
+            </div>
+          </div>
+          <div className="hero-art" aria-label="ภาพประกอบแนวคิดเครื่องมือ DIY">
+            <div className="hero-orbit orbit-one" />
+            <div className="hero-orbit orbit-two" />
+            <div className="hero-art-label">
+              <span className="little-dot" />
+              FROM AN IDEA TO SOMETHING REAL
+            </div>
+            <div className="featured-visual">
+              <Image
+                src="/images/kline.svg"
+                alt="ภาพวาดเครื่องมืออ่านข้อมูลและบอร์ดอิเล็กทรอนิกส์"
+                width={640}
+                height={440}
+                preload
+                className="hero-device"
+                unoptimized
+              />
+              <div className="visual-caption">
+                <span className="mini-chip">
+                  <Icon name="chip" size={14} /> ESP32
+                </span>
+                <span>ทำเองได้ เริ่มทีละขั้น</span>
+              </div>
+            </div>
+            <div className="floating-note note-one">
+              <span className="note-icon">
+                <Icon name="check" />
+              </span>
+              <div>
+                <strong>ไม่ต้องเริ่มจากศูนย์</strong>
+                <small>มีคู่มือช่วยพาไปทีละขั้น</small>
+              </div>
+            </div>
+            <div className="floating-note note-two">
+              <Icon name="spark" size={20} />
+              <span>สร้างแล้ว อย่าเก็บไว้คนเดียว</span>
+            </div>
+            <div className="hero-art-bottom">
+              MADE BY MAKERS. BUILT FOR EVERYONE.<span>↗</span>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+      <section className="value-strip">
+        <div className="container value-strip-inner">
+          <span>
+            <Icon name="book" />
+            อ่านง่าย ทำตามทีละขั้น
+          </span>
+          <span>
+            <Icon name="chip" />
+            ตั้งแต่ 3D Print ถึง ESP32
+          </span>
+          <span>
+            <Icon name="link" />
+            ฝากครั้งเดียว แชร์ได้ทุกกลุ่ม
+          </span>
+          <span className="prototype-label">กำลังทดลอง · ข้อมูลตัวอย่าง</span>
         </div>
-      </main>
-    </div>
+      </section>
+      <ProjectExplorer projects={projects} />
+      <section className="container maker-section">
+        <div className="maker-banner">
+          <div>
+            <p className="eyebrow">GOOD IDEAS DESERVE TO BE SHARED</p>
+            <h2>
+              ทำอะไรเจ๋ง ๆ อยู่?
+              <br />
+              ให้คนอื่นได้ลองทำด้วยสิ
+            </h2>
+            <p>
+              ไม่ต้องทำเว็บเอง รวมคู่มือและไฟล์ไว้ที่นี่
+              <br />
+              แล้วเอาลิงก์กับภาพไปแชร์ในกลุ่มของคุณ
+            </p>
+            <Link href="/submit" className="button primary">
+              ฝากผลงานแรกของคุณ <Icon name="arrow" />
+            </Link>
+          </div>
+          <ol className="maker-process">
+            <li>
+              <span>01</span>
+              <div>
+                <strong>เล่าไอเดียของคุณ</strong>
+                <p>ช่วยแก้ปัญหาอะไร ใครเอาไปใช้ได้</p>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <strong>เติมคู่มือและไฟล์</strong>
+                <p>บอกสิ่งที่ต้องเตรียมและขั้นตอนให้ครบ</p>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <strong>พร้อมแชร์ออกไป</strong>
+                <p>หน้าตัวอย่างมีลิงก์และภาพสำหรับแชร์</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+    </main>
   );
 }
