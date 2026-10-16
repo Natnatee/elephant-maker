@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="400" viewBox="0 0 560 400" role="img" aria-labelledby="board-title board-desc">
+  <title id="board-title">ESP32-C3 SuperMini — ภาพประกอบบอร์ดและจุดใช้งาน</title>
+  <desc id="board-desc">ภาพเวกเตอร์บอร์ดสีน้ำเงิน มีลายเสาอากาศสีทองด้านบน ชิป C3 แบบสี่เหลี่ยมตรงกลาง และ USB-C ด้านล่าง ปุ่มสองปุ่มใกล้ USB มีเส้นประกำกับ BOOT / RESET เป็นตำแหน่งโดยประมาณ ไม่ระบุว่าปุ่มใดอยู่ด้านไหน ให้ตรวจชื่อบนสกรีนของบอร์ดจริง เพราะตำแหน่งอาจต่างตามล็อต ไม่แสดงชื่อขาเพื่อหลีกเลี่ยงความคลาดเคลื่อน</desc>
+  <defs>
+    <linearGradient id="pcb" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#1e40af"/>
+    </linearGradient>
+    <linearGradient id="usb" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#94a3b8"/>
+    </linearGradient>
+    <g id="pad">
+      <rect x="-10" y="-9" width="20" height="18" rx="5" fill="#e8bd62"/>
+      <circle r="4.5" fill="#0f2855" stroke="#fff0bf" stroke-width="1.5"/>
+    </g>
+    <g id="button">
+      <rect x="-16" y="-13" width="32" height="26" rx="4" fill="#cbd5e1" stroke="#f8fafc" stroke-width="2"/>
+      <circle r="9" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+      <circle r="4" fill="#475569"/>
+    </g>
+  </defs>
+
+  <rect width="560" height="400" rx="24" fill="#f0f7ff"/>
+  <text x="280" y="32" text-anchor="middle" fill="#163568" font-family="Tahoma, 'Noto Sans Thai', sans-serif" font-size="20" font-weight="700">ESP32-C3 SuperMini</text>
+
+  <!-- Generic illustrative layout, not a pinout or an exact board revision. -->
+  <rect x="191" y="54" width="178" height="280" rx="18" fill="#cbdcf4"/>
+  <rect x="185" y="48" width="178" height="280" rx="16" fill="url(#pcb)" stroke="#163568" stroke-width="3"/>
+  <path d="M211 148V133H233M337 149V132H315M213 234H231V251M335 234H317V251" fill="none" stroke="#60a5fa" stroke-width="2"/>
+
+  <g fill="none" stroke="#f6cc72" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M239 125V109H222V72H237V93H252V72H267V93H282V72H297V93H312V72H329V111"/>
+  </g>
+  <path d="M213 119H337" stroke="#93c5fd" stroke-width="1" stroke-dasharray="3 5"/>
+
+  <g>
+    <use href="#pad" x="194" y="143"/><use href="#pad" x="194" y="167"/>
+    <use href="#pad" x="194" y="191"/><use href="#pad" x="194" y="215"/>
+    <use href="#pad" x="194" y="239"/><use href="#pad" x="194" y="263"/>
+    <use href="#pad" x="194" y="287"/>
+    <use href="#pad" x="354" y="143"/><use href="#pad" x="354" y="167"/>
+    <use href="#pad" x="354" y="191"/><use href="#pad" x="354" y="215"/>
+    <use href="#pad" x="354" y="239"/><use href="#pad" x="354" y="263"/>
+    <use href="#pad" x="354" y="287"/>
+  </g>
+
+  <!-- Exposed square QFN chip, deliberately not a metal RF module. -->
+  <rect x="234" y="151" width="80" height="80" rx="6" fill="#94a3b8"/>
+  <rect x="238" y="155" width="72" height="72" rx="4" fill="#172337" stroke="#475569" stroke-width="2"/>
+  <circle cx="247" cy="164" r="2.5" fill="#94a3b8"/>
+  <text x="274" y="185" text-anchor="middle" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="11">ESP32</text>
+  <text x="274" y="211" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="25" font-weight="700">C3</text>
+  <g fill="#cbd5e1" stroke="#475569" stroke-width="2">
+    <rect x="215" y="179" width="10" height="19" rx="2"/>
+    <rect x="324" y="166" width="10" height="21" rx="2"/>
+    <rect x="265" y="241" width="19" height="10" rx="2"/>
+  </g>
+  <rect x="320" y="214" width="10" height="14" rx="2" fill="#fca5a5" stroke="#fff"/>
+
+  <use href="#button" x="233" y="277"/>
+  <use href="#button" x="315" y="277"/>
+  <rect x="242" y="300" width="64" height="41" rx="8" fill="url(#usb)" stroke="#475569" stroke-width="2"/>
+  <rect x="249" y="324" width="50" height="12" rx="6" fill="#172337"/>
+  <path d="M260 330H288" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
+
+  <g font-family="Tahoma, 'Noto Sans Thai', sans-serif" fill="#163568">
+    <path d="M337 86H388" fill="none" stroke="#647fa6" stroke-width="2"/>
+    <text x="400" y="83" font-size="15" font-weight="700">เสาอากาศ</text>
+    <text x="400" y="103" font-size="12">ลายทองบน PCB</text>
+
+    <path d="M314 191H389" fill="none" stroke="#647fa6" stroke-width="2"/>
+    <text x="400" y="187" font-size="16" font-weight="700">ชิป C3</text>
+    <text x="400" y="207" font-size="12">ชิปสี่เหลี่ยม QFN</text>
+
+    <!-- One shared callout identifies the button pair without assigning sides. -->
+    <path d="M217 277H169V246H148M331 277H379V348H169V277" fill="none" stroke="#6484b0" stroke-width="2" stroke-dasharray="5 5"/>
+    <text x="24" y="239" font-size="16" font-weight="700">BOOT / RESET</text>
+    <text x="24" y="261" font-size="13">ตรวจชื่อบนสกรีนจริง</text>
+    <text x="24" y="281" font-size="12">ตำแหน่งปุ่มโดยประมาณ</text>
+
+    <path d="M307 317H393" fill="none" stroke="#647fa6" stroke-width="2"/>
+    <text x="405" y="322" font-size="16" font-weight="700">USB-C</text>
+  </g>
+
+  <text x="280" y="381" text-anchor="middle" fill="#425d82" font-family="Tahoma, 'Noto Sans Thai', sans-serif" font-size="15">ภาพประกอบ · ตำแหน่งอาจต่างตามล็อต</text>
+</svg>

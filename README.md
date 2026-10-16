@@ -2,6 +2,12 @@
 
 ต้นแบบเว็บแบ่งปัน DIY ของคนไทย: **ฝากง่าย แชร์สะดวก เปิดแล้วทำตามทีละขั้น**
 
+เว็บจริง (Vercel): https://elephant-maker.vercel.app/
+
+บันทึกสถานะล่าสุดและงานถัดไป: [PROGRESS.md](./PROGRESS.md)
+
+ตั้ง Environment Variable บน Vercel: `NEXT_PUBLIC_SITE_URL=https://elephant-maker.vercel.app` แล้ว redeploy เพื่อให้ metadata ใช้ URL เว็บจริง
+
 ## เริ่มใช้งาน
 
 แนะนำ Node.js 22+ และ pnpm (Node.js 20 ยัง build ผ่าน แต่ Supabase SDK แจ้ง deprecation)
@@ -34,11 +40,58 @@ pnpm --package=playwright --shell-mode dlx "node tests/browser-smoke.mjs"
 
 - `/` — การ์ดโปรเจกต์ ค้นหาชื่อ/ปัญหา/แท็ก หมวด งบ ความยาก ความพร้อม และเรียงลำดับ
 - `/projects/k-line-read-only-demo` — ตัวอย่างหน้าคู่มือ วัสดุ ผู้สร้าง ขั้นตอน และแชร์
+- `/projects/test-esp32c3` — การ์ด mock **เทสesp32c3** ใช้รูปบอร์ดจริง ปุ่มแฟลชเปิด modal เลือกบอร์ด → BOOT/RESET → ตรวจ → ติดตั้ง → RESET
 - `/submit` — ฟอร์ม 3 ขั้น เลือกรูปปก ดูตัวอย่าง บันทึกและเปิดร่างใน localStorage
 - `/submit/firmware-guide` — คู่มือเตรียม binary และข้อมูล manifest โดยไม่เดา offset
 - `/login` — Google/Facebook OAuth จริงผ่าน Supabase (ต้องเปิด provider ใน Dashboard); TikTok ปิดไว้
 - `/account` — ตรวจสมาชิกจาก Supabase แสดงโปรไฟล์และร่างของบัญชี
 - `/login/demo` — sandbox สมาชิกจำลองเดิม ไม่มีสิทธิ์เข้าถึงข้อมูลจริง
+
+## ทดลองแฟลช ESP32-C3
+
+เปิด `/test-flash` บน Chrome/Edge บนคอม ผ่าน HTTPS หรือ localhost เป็นพื้นที่ทดลอง ยังไม่ใช่ระบบติดตั้งสำหรับคนทั่วไปที่ผ่านการทดสอบฮาร์ดแวร์แล้ว
+
+1. เลือกบอร์ด `ESP32-C3 SuperMini` จากการ์ดภาพถ่ายอ้างอิง (ตำแหน่งปุ่มอาจต่างตามล็อต ให้ตรวจชื่อ BOOT / RST บนบอร์ดจริง) เลือกโปรเจกต์ `ESP32_C3_CHECK` แล้วกด **เลือกโปรเจกต์นี้** ระบบโหลดชุดที่เตรียมไว้ในเครื่องและตรวจ SHA-256 ไม่ต้องเลือกหลายไฟล์หรือกรอก offset (ยังมีตัวเลือกไฟล์เองในหัวข้อขั้นสูง)
+2. เสียบ USB สายข้อมูล ปิด Serial Monitor กด BOOT ค้าง → กดแล้วปล่อย RESET → ปล่อย BOOT แล้วเลือกพอร์ตในเว็บ
+3. ระบบตรวจ ESP32-C3, revision, Flash ขนาดตรงกัน และสถานะ security ก่อนอนุญาตติดตั้ง ตัวช่วยตรวจทำงานใน RAM ไม่เขียน Flash แต่หยุดโปรแกรมเดิมชั่วคราว และปรับ watchdog แบบ volatile เพื่อรองรับ native USB
+4. ยืนยัน **ล้าง Flash ทั้งหมด** แล้วติดตั้ง ระบบตรวจ image XOR checksum และ SHA256/partition MD5 เมื่อมี ก่อนเขียน และตรวจ MD5 จาก Flash หลังเขียน ไม่แก้ eFuse
+5. เมื่อเขียนและตรวจข้อมูลผ่าน แสดงขั้นตอนหลังติดตั้งชัดเจน: กดแล้วปล่อย RESET **โดยไม่กด BOOT** เพื่อเริ่มโปรแกรม แล้วตรวจ LED/Serial ด้วยตัวเอง หากยังไม่เริ่มให้ถอดเสียบ USB การเขียนผ่านไม่ได้รับรองวงจรหรือการทำงาน 100%
+
+คำแนะนำตามบอร์ดอยู่ใน `src/lib/flash-boards.ts` แยก error ชุดไฟล์, การเชื่อมต่อ และการเขียน: ปัญหาเข้าโหมดดาวน์โหลดแนะนำ BOOT → RESET → ปล่อย BOOT; ปัญหาเปิดพอร์ตแนะนำปิด Serial Monitor ส่วนปัญหาระหว่างเขียนต้องถือว่าอาจเขียนไปแล้วบางส่วน ไม่แสดงว่า Flash ยังไม่เปลี่ยน
+
+ไฟล์ไม่อัปโหลดขึ้นเซิร์ฟเวอร์ ไม่ build firmware และไม่อ่าน `secrets.h` อัตโนมัติ โปรเจกต์ `ESP32_C3_CHECK` ฝังข้อมูล Wi-Fi ใน binary ได้ จึงต้องเปลี่ยนเป็นข้อมูลทดสอบก่อนแจกไฟล์ ไฟล์แบบ OTA-only ต้องมี ota_0 และ otadata ที่อยู่ในไฟล์เป็น FF เพื่อให้เริ่มจาก ota_0 หลังล้างทั้งหมด
+
+### เตรียมชุดจากผล build (ทำครั้งเดียว หรือเมื่อ firmware เปลี่ยน)
+
+รันใน `ESP32_C3_CHECK` หลัง build เพื่อสร้าง metadata ของ offset จริง:
+
+```bash
+pio project metadata --json-output-path .pio/build/esp32c3/project-metadata.json
+```
+
+รันใน `elephant-maker`:
+
+```bash
+pnpm prepare:test-flash "C:\MCU\ESP32\ESP32_C3_CHECK\.pio\build\esp32c3"
+pnpm dev --hostname 127.0.0.1
+```
+
+เปิด http://localhost:3000/test-flash ชุดจริงเก็บใน `.local-firmware/esp32-c3-check/` ซึ่งกันออกจาก Git และ Vercel ไม่ใช่ `public/` API `/api/test-flash/esp32-c3-check` เปิดเฉพาะ development ที่ loopback พร้อม same-origin header และตรวจ SHA-256 ทุกครั้ง **production และ Vercel ปฏิเสธเสมอ** จึงไม่เผยไฟล์ที่อาจมี Wi-Fi credentials
+
+ตัวเตรียมไฟล์อ่าน offset bootloader/table จาก PlatformIO metadata และ app จาก partition table ตรวจ image checksums/hashes ก่อนสร้าง merged binary โดยเว้น otadata เป็น FF ไม่มี boot_app0 และไม่มีไฟล์จากบอร์ดจริง ไม่รับ app-only, encrypted partitions หรือ app สำรองอื่น
+
+หน้า experimental นี้มีโปรเจกต์ทดสอบ local หนึ่งรายการ ยังไม่ใช่ระบบรายการ firmware ที่เผยแพร่ให้คนทั่วไป บน Vercel ยังใช้ไฟล์จากคอมในหัวข้อขั้นสูงได้ แต่ไม่มีชุด private ให้ดาวน์โหลด
+
+ทดสอบ UI โดยไม่เข้าถึงฮาร์ดแวร์:
+
+```bash
+# Modal บนการ์ดโปรเจกต์ (ขณะ pnpm dev ทำงาน; mock API/picker ไม่แตะฮาร์ดแวร์)
+pnpm --package=playwright --shell-mode dlx "node tests/browser-project-flash.mjs"
+# Production privacy + synthetic firmware (หลัง pnpm build)
+pnpm --package=playwright --shell-mode dlx "node tests/with-test-server.mjs"
+# Development + ชุดจริงในเครื่อง (หลังเตรียมชุด และไม่มี pnpm dev อีกตัว)
+pnpm --package=playwright --shell-mode dlx "node tests/with-test-server.mjs --dev"
+```
 
 ## สิ่งที่เป็น mock
 
@@ -48,9 +101,9 @@ pnpm --package=playwright --shell-mode dlx "node tests/browser-smoke.mjs"
 - ร่างเก็บเฉพาะเบราว์เซอร์นั้น ไม่ซิงก์ และอาจหายเมื่อเคลียร์ข้อมูล
 - รูป/ไบนารีที่เลือกเก็บเพียง metadata ไม่อัปโหลด ไม่เก็บ bytes ใน localStorage; รูป preview ต้องเลือกใหม่เมื่อเปิดร่าง
 - ไฟล์ในโปรเจกต์เป็น metadata ไม่มี URL ดาวน์โหลด ไม่มี binary ใช้งานจริง
-- ปุ่มแฟลชถูกปิด ไม่ใช้ Web Serial และไม่เชื่อมต่ออุปกรณ์
+- ปุ่มแฟลชในหน้าโปรเจกต์ตัวอย่างอื่นยังปิดไว้; **เทสesp32c3** และ `/test-flash` ใช้เครื่องมือ Web Serial จริง ต้องยืนยันล้างข้อมูลก่อนติดตั้ง modal ใช้ native dialog และไม่ให้ปิดระหว่างโหลดชุด/ตรวจบอร์ด/เขียน รวมถึงช่วง cleanup
 - บัญชีจำลองไม่ใช่ระบบสิทธิ์หรือการยืนยันตัวตน ไม่มี token
-- ภาพทั้งหมดเป็น SVG ใน `public/images` ไม่โหลดภาพหรือฟอนต์ภายนอก
+- ภาพประกอบ SVG อยู่ใน `public/images` รูปบอร์ดที่ผู้ใช้ให้มาอยู่ใน `public/board/esp32c3Supermini.webp` ไม่โหลดภาพหรือฟอนต์ภายนอก
 
 ## โครงสร้าง
 

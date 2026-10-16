@@ -21,6 +21,7 @@ export interface Project {
   safetyNotes: string[];
   publishedAt: string | null;
   featured: boolean;
+  flashDemo?: "esp32-c3-check";
 }
 
 export interface Profile {

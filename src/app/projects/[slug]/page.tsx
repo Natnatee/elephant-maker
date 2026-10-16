@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { getProjectBySlug, getProjectDetails, getProjects } from "@/lib/data";
 import { ProjectActions } from "@/components/project-actions";
 import { StepGuide } from "@/components/step-guide";
+import ProjectFlash from "@/components/project-flash";
 
 type Props = { params: Promise<{ slug: string }> };
 const difficultyLabels = {
@@ -84,6 +85,7 @@ async function ProjectContent({ params }: Props) {
   const details = getProjectDetails(project.id);
   if (!details) notFound();
   const { owner, steps, materials, files, firmwareReleases, tags } = details;
+  const hasFlashDemo = project.flashDemo === "esp32-c3-check";
 
   return (
     <>
@@ -94,12 +96,20 @@ async function ProjectContent({ params }: Props) {
         <div className="relative min-h-64 bg-[var(--accent-soft)] sm:min-h-96">
           <Image
             src={project.cover}
-            alt={`ภาพประกอบแนวคิด ${project.title}`}
+            alt={
+              hasFlashDemo
+                ? `รูปบอร์ด ESP32-C3 SuperMini · ${project.title}`
+                : `ภาพประกอบแนวคิด ${project.title}`
+            }
             fill
             sizes="(min-width: 1024px) 50vw, 100vw"
             unoptimized
             preload
-            className="object-cover"
+            className={
+              hasFlashDemo
+                ? "object-contain bg-[var(--surface)] p-5"
+                : "object-cover"
+            }
           />
         </div>
         <div className="space-y-5 p-6 sm:p-9">
@@ -149,9 +159,15 @@ async function ProjectContent({ params }: Props) {
               </span>
             ))}
           </div>
-          <a href="#guide-start" className="button primary">
-            สำรวจขั้นตอนตัวอย่าง →
-          </a>
+          <div className="flex flex-wrap items-center gap-3">
+            {hasFlashDemo && <ProjectFlash title={project.title} />}
+            <a
+              href="#guide-start"
+              className={`button ${hasFlashDemo ? "secondary" : "primary"}`}
+            >
+              {hasFlashDemo ? "ดูขั้นตอนติดตั้ง ↓" : "สำรวจขั้นตอนตัวอย่าง →"}
+            </a>
+          </div>
           <ProjectActions
             title={project.title}
             summary={project.summary}
@@ -165,11 +181,15 @@ async function ProjectContent({ params }: Props) {
         className="rounded-2xl border border-[var(--warning-border)] bg-[var(--warning-bg)] p-6 text-[var(--warning-text)]"
         aria-label="ข้อจำกัดของตัวอย่าง"
       >
-        <h2 className="font-bold">เรียนรู้จากแนวคิด ไม่ใช่คู่มือลงมือจริง</h2>
+        <h2 className="font-bold">
+          {hasFlashDemo
+            ? "โปรเจกต์ตัวอย่าง แต่การแฟลชเขียนบอร์ดจริง"
+            : "เรียนรู้จากแนวคิด ไม่ใช่คู่มือลงมือจริง"}
+        </h2>
         <p className="mt-2 leading-relaxed">
-          ทุกผลงานในชุดนี้เป็นข้อมูลสาธิต
-          ยังไม่ผ่านการทดสอบหรือรับรองความปลอดภัย
-          ไฟล์และเฟิร์มแวร์เป็นเพียงเมทาดาทา ไม่มีไบนารีที่ใช้งานได้
+          {hasFlashDemo
+            ? "ข้อมูลผู้สร้าง งบ และเวลาเป็น mock ส่วนเครื่องมือแฟลชใช้ Web Serial จริงและล้างข้อมูลทั้งหมดใน Flash ชุด ESP32_C3_CHECK ที่เตรียมไว้เปิดเฉพาะ localhost ไม่เผยแพร่ไฟล์ที่อาจฝังรหัส Wi-Fi บน Vercel"
+            : "ทุกผลงานในชุดนี้เป็นข้อมูลสาธิต ยังไม่ผ่านการทดสอบหรือรับรองความปลอดภัย ไฟล์และเฟิร์มแวร์เป็นเพียงเมทาดาทา ไม่มีไบนารีที่ใช้งานได้"}
         </p>
       </aside>
 
@@ -232,7 +252,7 @@ async function ProjectContent({ params }: Props) {
             aria-labelledby="steps-title"
           >
             <h2 id="steps-title" className="section-heading">
-              สำรวจขั้นตอนแนวคิด
+              {hasFlashDemo ? "ขั้นตอนติดตั้ง ESP32-C3" : "สำรวจขั้นตอนแนวคิด"}
             </h2>
             <StepGuide key={project.id} steps={steps} />
           </section>
@@ -245,8 +265,9 @@ async function ProjectContent({ params }: Props) {
               ไฟล์และเฟิร์มแวร์
             </h2>
             <p className="muted">
-              ข้อมูลเดโมเท่านั้น ปิดการดาวน์โหลดและแฟลช ไม่มีการขอสิทธิ์ Serial
-              หรือเชื่อมต่อฮาร์ดแวร์
+              {hasFlashDemo
+                ? "กดปุ่มแฟลชด้านบนเพื่อเปิดขั้นตอนใน modal ระบบขอสิทธิ์พอร์ตเมื่อคุณกดเชื่อมต่อเท่านั้น ชุดสำเร็จรูปใช้บน localhost ส่วนบน Vercel ต้องเลือกไฟล์ในคอมผ่านหัวข้อขั้นสูง"
+                : "ข้อมูลเดโมเท่านั้น ปิดการดาวน์โหลดและแฟลช ไม่มีการขอสิทธิ์ Serial หรือเชื่อมต่อฮาร์ดแวร์"}
             </p>
             {files.length ? (
               <ul className="space-y-3">
@@ -272,7 +293,11 @@ async function ProjectContent({ params }: Props) {
                 ))}
               </ul>
             ) : (
-              <p className="muted">ไม่มีไฟล์ดาวน์โหลดสำหรับแนวคิดนี้</p>
+              <p className="muted">
+                {hasFlashDemo
+                  ? "ไม่ได้เปิดดาวน์โหลดเฟิร์มแวร์ส่วนตัวจากหน้ารายละเอียดนี้"
+                  : "ไม่มีไฟล์ดาวน์โหลดสำหรับแนวคิดนี้"}
+              </p>
             )}
             {firmwareReleases.map((release) => (
               <div

@@ -15,7 +15,10 @@ export type IconName =
   | "menu"
   | "close"
   | "spark"
-  | "book";
+  | "book"
+  | "like"
+  | "eye"
+  | "bookmark";
 const paths: Record<IconName, React.ReactNode> = {
   arrow: (
     <>
@@ -28,6 +31,9 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="m16 16 4 4" />
     </>
   ),
+  like: <path d="M7 10v11H3V10h4Zm0 0 5-8a3 3 0 0 1 2 4l-1 4h6a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 2H7" />,
+  eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
+  bookmark: <path d="M6 3h12v18l-6-4-6 4V3Z" />,
   plus: <path d="M12 5v14M5 12h14" />,
   clock: (
     <>

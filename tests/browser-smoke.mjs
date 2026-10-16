@@ -70,13 +70,13 @@ try {
   await page
     .getByRole("combobox", { name: "กรองงบประมาณ" })
     .selectOption("500");
-  assert.equal(await page.locator(".project-card").count(), 5);
+  assert.equal(await page.locator(".project-card").count(), 6);
   await page.getByRole("button", { name: "ล้างตัวกรองทั้งหมด" }).click();
   await page.getByRole("button", { name: /^ตัวกรอง/ }).click();
   console.log(
     "PASS sidebar/card-first/readable typography/collapsible filters",
   );
-  assert.equal(await page.locator(".project-card").count(), 6);
+  assert.equal(await page.locator(".project-card").count(), 7);
   await page.getByRole("button", { name: "ยานยนต์", exact: true }).click();
   assert.equal(await page.locator(".project-card").count(), 1);
   await page.getByRole("button", { name: "ล้างตัวกรองทั้งหมด" }).click();
@@ -87,7 +87,7 @@ try {
     .getByRole("heading", { name: "ยังไม่พบไอเดียที่ตรงกับคำค้น" })
     .waitFor();
   await page.getByRole("button", { name: "ดูโปรเจกต์ทั้งหมด" }).click();
-  assert.equal(await page.locator(".project-card").count(), 6);
+  assert.equal(await page.locator(".project-card").count(), 7);
   console.log("PASS search/category/reset/empty state");
 
   await page.goto(`${origin}/projects/k-line-read-only-demo`, {

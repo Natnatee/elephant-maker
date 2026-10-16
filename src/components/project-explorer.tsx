@@ -6,7 +6,9 @@ import Image from "next/image";
 import type { Project } from "@/lib/types";
 import { Icon, type IconName } from "./icons";
 
-type CardProject = Project & { ownerName: string; tags: string[] };
+import { ProjectCardActions } from "./project-card-actions";
+
+type CardProject = Project & { ownerName: string; tags: string[]; hasFlash: boolean; has3d: boolean };
 const categories: { label: string; icon: IconName }[] = [
   { label: "ทั้งหมด", icon: "cube" },
   { label: "ยานยนต์", icon: "car" },
@@ -230,37 +232,36 @@ export function ProjectExplorer({ projects }: { projects: CardProject[] }) {
                 <div className="card-image">
                   <Image
                     src={project.cover}
-                    alt={`ภาพประกอบ ${project.title}`}
+                    alt={
+                      project.flashDemo
+                        ? `รูปบอร์ด ESP32-C3 SuperMini · ${project.title}`
+                        : `ภาพประกอบ ${project.title}`
+                    }
                     fill
                     sizes="(max-width: 599px) 100vw, (max-width: 1023px) 50vw, (max-width: 1399px) 33vw, 25vw"
                     unoptimized
                     loading={index < 4 ? "eager" : "lazy"}
-                    className="object-cover"
+                    className={
+                      project.flashDemo
+                        ? "object-contain bg-[var(--surface)] p-3"
+                        : "object-cover"
+                    }
                   />
-                  {project.readiness === "ready" && (
-                    <span className="card-readiness">
-                      <Icon name="book" size={18} />
-                      คู่มือครบ
-                    </span>
+                  {(project.hasFlash || project.has3d) && (
+                    <div className="card-capabilities">
+                      {project.hasFlash && <span>Flash</span>}
+                      {project.has3d && <span>3D</span>}
+                    </div>
                   )}
                 </div>
                 <div className="card-body">
-                  <h2>{project.title}</h2>
-                  <p className="card-author">{project.ownerName}</p>
-                  <div className="card-meta">
-                    <span>
-                      <Icon name="wallet" size={18} />
-                      {project.budget.toLocaleString("th-TH")} บาท
-                    </span>
-                    <span>
-                      <Icon name="clock" size={18} />
-                      {project.durationMinutes >= 60
-                        ? `${Math.round(project.durationMinutes / 6) / 10} ชม.`
-                        : `${project.durationMinutes} นาที`}
-                    </span>
-                  </div>
+                  <h2 title={project.title}>{project.title}</h2>
                 </div>
               </Link>
+              <div className="card-footer">
+                <p className="card-author" title={project.ownerName}>{project.ownerName}</p>
+                <ProjectCardActions id={project.id} title={project.title} />
+              </div>
             </article>
           ))}
         </div>

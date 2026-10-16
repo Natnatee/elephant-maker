@@ -20,6 +20,9 @@
 # production
 /build
 
+# Local firmware may contain embedded Wi-Fi credentials. Never deploy or commit it.
+/.local-firmware/
+
 # misc
 .DS_Store
 *.pem

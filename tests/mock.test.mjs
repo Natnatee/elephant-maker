@@ -79,7 +79,7 @@ test("relational references and local images exist", () => {
   }
 });
 test("public queries do not expose drafts", () => {
-  assert.equal(data.getProjects().length, 6);
+  assert.equal(data.getProjects().length, 7);
   const draft = fixture.projects.find((p) => p.status === "draft");
   assert.ok(draft);
   assert.equal(data.getProjectBySlug(draft.slug), undefined);
@@ -106,6 +106,21 @@ test("demo firmware never has a usable download URL", () => {
   for (const release of fixture.firmwareReleases)
     assert.equal(release.isDemo, true);
 });
+test("C3 mock card uses the provided photo and enables only the reviewed real flash tool", () => {
+  const project = data.getProjectBySlug("test-esp32c3");
+  assert.equal(project.title, "เทสesp32c3");
+  assert.equal(project.cover, "/board/esp32c3Supermini.webp");
+  assert.equal(project.flashDemo, "esp32-c3-check");
+  assert.equal(data.getProjects().filter((row) => row.flashDemo).length, 1);
+  const detail = data.getProjectDetails(project.id);
+  assert.equal(detail.steps.length, 4);
+  assert.equal(detail.materials.length, 2);
+  assert.equal(detail.files.length, 0);
+  assert.equal(detail.firmwareReleases.length, 0);
+  assert.match(detail.steps.at(-1).description, /RESET.*ไม่กด BOOT/);
+  assert.ok(project.safetyNotes.some((note) => note.includes("localhost")));
+});
+
 test("basic submission required fields reject blank and whitespace", () => {
   assert.equal(drafts.validateStep(drafts.emptyDraft(), 0).length, 4);
   assert.ok(

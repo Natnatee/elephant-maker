@@ -15,6 +15,30 @@
   ],
   "projects": [
     {
+      "id": "p8",
+      "slug": "test-esp32c3",
+      "title": "เทสesp32c3",
+      "summary": "โปรเจกต์ตัวอย่างทดสอบ ESP32-C3 SuperMini: ติดตั้งผ่านเว็บแล้วดู LED กระพริบ พร้อมขั้นตอน BOOT / RESET ในหน้าต่างเดียว เครื่องมือแฟลชเขียนบอร์ดจริง ไม่ใช่การจำลอง",
+      "category": "อิเล็กทรอนิกส์",
+      "cover": "/board/esp32c3Supermini.webp",
+      "ownerId": "maker-1",
+      "status": "published",
+      "readiness": "ready",
+      "budget": 200,
+      "durationMinutes": 10,
+      "difficulty": "beginner",
+      "skills": ["ESP32-C3", "USB", "แฟลชผ่านเว็บ"],
+      "safetyNotes": [
+        "การติดตั้งจะล้างโปรแกรมและข้อมูลทั้งหมดใน Flash ไม่แก้ eFuse",
+        "ใช้ ESP32-C3 SuperMini ขนาด Flash 4 MB และถอดวงจรภายนอกก่อนทดลอง",
+        "ห้ามถอด USB ปิดหน้าต่าง หรือกด RESET ระหว่างเขียนและตรวจข้อมูล",
+        "ชุดเฟิร์มแวร์สำเร็จรูปใช้เฉพาะ localhost อาจมีรหัส Wi-Fi ฝังอยู่ ไม่เผยแพร่บน Vercel"
+      ],
+      "publishedAt": "2026-10-14T09:00:00Z",
+      "featured": true,
+      "flashDemo": "esp32-c3-check"
+    },
+    {
       "id": "p1",
       "slug": "k-line-read-only-demo",
       "title": "K-Line อ่านอย่างเดียว · ห้องทดลองจำลอง",
@@ -162,6 +186,35 @@
   ],
   "steps": [
     {
+      "id": "s-c3-1",
+      "projectId": "p8",
+      "order": 1,
+      "title": "เปิดหน้าต่างแฟลชและเลือกบอร์ด",
+      "description": "กดปุ่มแฟลช ESP32-C3 เลือก ESP32-C3 SuperMini จากรูป แล้วเตรียมชุดเฟิร์มแวร์ในหน้าต่าง ชุดสำเร็จรูปใช้เฉพาะ localhost"
+    },
+    {
+      "id": "s-c3-2",
+      "projectId": "p8",
+      "order": 2,
+      "title": "เข้าโหมด BOOT แล้วตรวจบอร์ด",
+      "description": "เสียบสาย USB ข้อมูลและปิด Serial Monitor กด BOOT ค้าง กดแล้วปล่อย RESET จากนั้นปล่อย BOOT แล้วเลือกพอร์ตในเว็บ ระบบตรวจชิปและขนาด Flash ก่อนเปิดปุ่มติดตั้ง"
+    },
+    {
+      "id": "s-c3-3",
+      "projectId": "p8",
+      "order": 3,
+      "title": "ยืนยันล้างข้อมูลและติดตั้ง",
+      "description": "เมื่อข้อมูลบอร์ดตรง ให้ยืนยันการล้าง Flash แล้วกดติดตั้ง รอทั้งการเขียนและตรวจข้อมูลจนเสร็จ",
+      "safetyNote": "โปรแกรมและข้อมูลเดิมทั้งหมดจะถูกล้าง ห้ามถอด USB หรือรีเซ็ตระหว่างทำงาน"
+    },
+    {
+      "id": "s-c3-4",
+      "projectId": "p8",
+      "order": 4,
+      "title": "กด RESET แล้วดู LED",
+      "description": "หลังเขียนและตรวจข้อมูลผ่าน ให้กดแล้วปล่อย RESET โดยไม่กด BOOT ตรวจว่า LED บนบอร์ดกระพริบ การตรวจข้อมูลผ่านไม่ยืนยันการทำงานของวงจรหรือ Wi-Fi"
+    },
+    {
       "id": "s1",
       "projectId": "p1",
       "order": 1,
@@ -241,6 +294,24 @@
     }
   ],
   "materials": [
+    {
+      "id": "m-c3-board",
+      "projectId": "p8",
+      "name": "ESP32-C3 SuperMini · Flash 4 MB",
+      "quantity": 1,
+      "unit": "บอร์ด",
+      "estimatedCost": 150,
+      "note": "ราคาสมมติสำหรับการ์ดตัวอย่าง"
+    },
+    {
+      "id": "m-c3-usb",
+      "projectId": "p8",
+      "name": "สาย USB-C ที่ส่งข้อมูลได้",
+      "quantity": 1,
+      "unit": "เส้น",
+      "estimatedCost": 50,
+      "note": "สายชาร์จอย่างเดียวใช้เชื่อมต่อพอร์ตไม่ได้ ราคาสมมติ"
+    },
     {
       "id": "m1",
       "projectId": "p1",
@@ -365,12 +436,16 @@
     { "id": "fp2", "releaseId": "r2", "fileId": "f3", "offset": "0x10000" }
   ],
   "tags": [
+    { "id": "t-c3", "name": "ESP32-C3", "slug": "esp32-c3" },
+    { "id": "t-web-flash", "name": "แฟลชผ่านเว็บ", "slug": "web-flash" },
     { "id": "t1", "name": "ข้อมูลจำลอง", "slug": "simulation" },
     { "id": "t2", "name": "อ่านอย่างเดียว", "slug": "read-only" },
     { "id": "t3", "name": "สวนเล็ก", "slug": "small-garden" },
     { "id": "t4", "name": "แนวคิด 3D", "slug": "3d-concept" }
   ],
   "project_tags": [
+    { "projectId": "p8", "tagId": "t-c3" },
+    { "projectId": "p8", "tagId": "t-web-flash" },
     { "projectId": "p1", "tagId": "t1" },
     { "projectId": "p1", "tagId": "t2" },
     { "projectId": "p2", "tagId": "t3" },

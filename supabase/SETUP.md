@@ -41,7 +41,17 @@ Supabase → **Authentication → URL Configuration**:
 - Site URL สำหรับ local: `http://localhost:3000`
 - Redirect URLs สำหรับ local: `http://localhost:3000/**` เพื่อรองรับ `/auth/callback?next=/account`
 
-เมื่อ deploy ให้เปลี่ยน Site URL และ `NEXT_PUBLIC_SITE_URL` เป็น HTTPS ของเว็บจริง และจำกัด Redirect URLs เฉพาะ origin/เส้นทาง callback ที่ต้องใช้ เช่น `https://your-domain.example/auth/callback**` เพื่อรองรับ query string ของ `next` อย่าใช้ wildcard ทั้ง domain ใน production โดยไม่จำเป็น และลบ local URL เมื่อไม่ใช้
+เว็บจริง (Vercel): https://elephant-maker.vercel.app/
+
+ค่าที่ต้องตั้งสำหรับ production:
+
+- Supabase Site URL: `https://elephant-maker.vercel.app`
+- Supabase Redirect URLs: `https://elephant-maker.vercel.app/auth/callback**` เพื่อรองรับ query string ของ `next`
+- Vercel Environment Variable: `NEXT_PUBLIC_SITE_URL=https://elephant-maker.vercel.app` แล้ว redeploy
+
+อย่าใช้ wildcard ทั้ง domain ใน production โดยไม่จำเป็น และลบ local URL เมื่อไม่ใช้ Google/Facebook ยังใช้ Supabase callback ในหัวข้อ 2 ไม่ใช่ URL ของ Vercel
+
+รายการนี้เป็นค่าที่ต้องตั้งใน Dashboard ยังไม่ได้เปลี่ยนการตั้งค่าบน Supabase หรือ Vercel อัตโนมัติ
 
 **สอง callback คนละหน้าที่:** Google/Facebook ส่งกลับ Supabase `/auth/v1/callback`; Supabase ส่งกลับเว็บเรา `/auth/callback` ซึ่งแลก PKCE code เป็น session
 
