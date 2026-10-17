@@ -27,7 +27,8 @@ export default function LoginPage({
         <p className="text-sm font-bold text-[var(--brand)]">ELEPHANT MAKER</p>
         <h1 className="text-3xl font-bold">เข้าสู่ระบบบัญชีผู้สร้าง</h1>
         <p className="text-[var(--muted)]">
-          ใช้บัญชี Google หรือ Facebook เพื่อดูข้อมูลสมาชิกและร่างผลงานของคุณ
+          เข้าสู่ระบบหรือสมัครสมาชิกด้วยอีเมล หรือใช้ Google / Facebook
+                    เพื่อจัดการข้อมูลสมาชิกและร่างผลงานของคุณ
         </p>
       </header>
       <Suspense fallback={<p role="status">กำลังเตรียมการเข้าสู่ระบบ…</p>}>

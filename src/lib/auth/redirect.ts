@@ -1,6 +1,13 @@
 const DEFAULT_NEXT = "/account";
 const INTERNAL_ORIGIN = "https://internal.invalid";
 
+export function getPostAuthPath(value: string | null | undefined): string {
+  const next = getSafeNextPath(value);
+  return new URL(next, INTERNAL_ORIGIN).pathname === "/account/password"
+    ? "/account/password"
+    : `/account/setup?next=${encodeURIComponent(next)}`;
+}
+
 export function getSafeNextPath(value: string | null | undefined): string {
   if (
     !value ||
@@ -17,7 +24,8 @@ export function getSafeNextPath(value: string | null | undefined): string {
       url.origin !== INTERNAL_ORIGIN ||
       decodedPath.startsWith("//") ||
       /[\\\u0000-\u001f\u007f-\u009f]/u.test(decodeURIComponent(value)) ||
-      /^\/(?:auth|login)(?:\/|$)/i.test(decodedPath)
+      /^\/(?:auth|login)(?:\/|$)/i.test(decodedPath) ||
+      /^\/account\/setup(?:\/|$)/i.test(decodedPath)
     ) {
       return DEFAULT_NEXT;
     }

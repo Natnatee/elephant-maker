@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
@@ -24,7 +25,9 @@ export default function RootLayout({
         <a className="skip-link" href="#main-content">
           ข้ามไปเนื้อหา
         </a>
-        <SiteHeader />
+        <Suspense fallback={null}>
+          <SiteHeader />
+        </Suspense>
         <div className="app-body">
           <div id="main-content" tabIndex={-1} className="site-content">
             {children}

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { getSafeNextPath } from "@/lib/auth/redirect";
+import { getPostAuthPath } from "@/lib/auth/redirect";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       response = error
         ? failure()
         : Response.redirect(
-            new URL(getSafeNextPath(url.searchParams.get("next")), url.origin),
+            new URL(getPostAuthPath(url.searchParams.get("next")), url.origin),
             303,
           );
     }

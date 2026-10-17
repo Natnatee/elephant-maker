@@ -21,13 +21,7 @@ const migrationDirectory = new URL("../supabase/migrations/", import.meta.url);
 const migrationFiles = (await readdir(migrationDirectory))
   .filter((name) => name.endsWith(".sql"))
   .sort();
-const migration = (
-  await Promise.all(
-    migrationFiles.map((name) =>
-      readFile(new URL(name, migrationDirectory), "utf8"),
-    ),
-  )
-).join("\n");
+
 const originalTests = await readFile(
   new URL("../supabase/tests/rls.sql", import.meta.url),
   "utf8",
@@ -86,7 +80,7 @@ try {
     grant select on storage.objects to anon;
   `);
   phase = "supabase/migrations/*.sql";
-  const usernameMigration = "20261017000000_member_usernames.sql";
+  const usernameMigration = "20261017001204_member_usernames.sql";
   assert.equal(migrationFiles.at(-1), usernameMigration);
   for (const name of migrationFiles) {
     if (name === usernameMigration) {
@@ -102,7 +96,8 @@ try {
     where id = '55555555-5555-4555-8555-555555555555'
   `);
   assert.deepEqual(legacy, [{ username: null, name: "Legacy Maker" }]);
-  await db.exec("delete from auth.users where id = '55555555-5555-4555-855PASS: original migration executed.");
+  await db.exec("delete from auth.users where id = '55555555-5555-4555-8555-555555555555'");
+  console.log("PASS: all migrations executed; existing profile preserved with null username.");
 
   const tables = [
     "auth.users",

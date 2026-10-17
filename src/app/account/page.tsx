@@ -45,7 +45,7 @@ async function AccountContent() {
   const [profileResult, projectsResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id,name,bio,avatar,contacts")
+      .select("id,name,username,bio,avatar,contacts")
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -54,6 +54,8 @@ async function AccountContent() {
       .eq("owner_id", user.id)
       .eq("status", "draft"),
   ]);
+
+  if (!profileResult.error && profileResult.data && !profileResult.data.username) redirect("/account/setup");
 
   return (
     <AccountPanel

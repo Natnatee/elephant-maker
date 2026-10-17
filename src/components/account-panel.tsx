@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { DisplayNameForm } from "./member-profile-form";
 
 export type AccountProfile = {
   id: string;
   name: string | null;
+  username: string | null;
   bio: string | null;
   avatar: string | null;
   contacts: unknown;
@@ -45,6 +47,7 @@ export default function AccountPanel({
         </span>
         <div className="min-w-0">
           <h2 className="text-xl font-bold">{name}</h2>
+          {profile?.username && <Link className="text-sm text-[var(--brand)] underline" href={`/u/${profile.username}`}>@{profile.username} ↗</Link>}
           <p className="break-all text-sm text-[var(--muted)]">
             {member.email || "บัญชีที่ยืนยันตัวตนแล้ว"}
           </p>
@@ -64,6 +67,7 @@ export default function AccountPanel({
       ) : (
         <p className="text-[var(--muted)]">ยังไม่มีข้อมูลโปรไฟล์ในฐานข้อมูล</p>
       )}
+      {profile && <DisplayNameForm name={name} />}
       <div className="space-y-3">
         <h3 className="text-lg font-bold">ร่างผลงานของคุณ</h3>
         {projectsError ? (
@@ -103,6 +107,7 @@ export default function AccountPanel({
         >
           สร้างผลงาน
         </Link>
+        <Link href="/account/password" className="button secondary">เปลี่ยนรหัสผ่าน</Link>
         <form method="post" action="/auth/signout">
           <button
             type="submit"
