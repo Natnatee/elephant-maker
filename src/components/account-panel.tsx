@@ -4,7 +4,7 @@ import { DisplayNameForm } from "./member-profile-form";
 export type AccountProfile = {
   id: string;
   name: string | null;
-  username: string | null;
+
   bio: string | null;
   avatar: string | null;
   contacts: unknown;
@@ -47,7 +47,7 @@ export default function AccountPanel({
         </span>
         <div className="min-w-0">
           <h2 className="text-xl font-bold">{name}</h2>
-          {profile?.username && <Link className="text-sm text-[var(--brand)] underline" href={`/u/${profile.username}`}>@{profile.username} ↗</Link>}
+          {profile && <Link className="text-sm text-[var(--brand)] underline" href={`/u/${profile.id}`}>ดูโปรไฟล์สาธารณะ ↗</Link>}
           <p className="break-all text-sm text-[var(--muted)]">
             {member.email || "บัญชีที่ยืนยันตัวตนแล้ว"}
           </p>

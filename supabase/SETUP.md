@@ -1,10 +1,10 @@
 # เปิดใช้ Supabase จริง (Free plan)
 
-**Schema 10 ตาราง + RLS + private bucket ถูกสร้างบน Supabase cloud ผ่าน MCP แล้ว** โปรเจกต์ `cjrzxvpdayjxopwjbjer` ใช้ migration versions ตรงกับไฟล์ใน repository ส่วน Google/Facebook ยังต้องตั้ง provider ใน Dashboard ไม่มี admin/service-role key หรือ provider secret ใน repository
+**Schema 10 ตาราง + RLS + private bucket ถูกสร้างบน Supabase cloud ผ่าน MCP แล้ว** โปรเจกต์ `cjrzxvpdayjxopwjbjer` apply migration ลบ username version `20261017090152` แล้วตามที่ผู้ใช้ยืนยัน ผู้ใช้ตั้งค่า Google OAuth แล้ว แต่ยังไม่ได้ตรวจยืนยันค่า Auth/provider ปัจจุบันซ้ำ ไม่มี Facebook login ไม่มี admin/service-role key หรือ provider secret ใน repository
 
 ## 1. สร้างตารางและสิทธิ์
 
-1. **โปรเจกต์ปัจจุบันไม่ต้องรัน SQL ซ้ำ** Migration ถูก apply แล้ว
+1. Migration รวม `20261017090152_remove_member_usernames.sql` apply บน remote แล้วตามที่ผู้ใช้ยืนยัน คอลัมน์ username ถูกลบแล้ว ไม่ต้องรันซ้ำ
 2. หากสร้างโปรเจกต์ใหม่ ใช้ migration ใน `supabase/migrations/` ตามลำดับชื่อไฟล์ ผ่าน CLI หรือ SQL Editor (ครั้งเดียวต่อ migration)
 3. ตรวจ Table Editor: 10 ตาราง: `profiles`, `projects`, `steps`, `step_files`, `materials`, `files`, `firmware_releases`, `firmware_parts`, `tags`, `project_tags`
 4. ตรวจ Storage: bucket `project-assets` ต้องเป็น **Private**
@@ -21,17 +21,16 @@ RLS: คนทั่วไปอ่านเฉพาะงานเผยแพ
 
 **ห้ามรัน `supabase/tests/rls.sql` บน cloud/production** ใช้เฉพาะ DB local ที่ทิ้งได้ เพราะทดสอบด้วยผู้ใช้และ role จำลอง
 
-## 2. Email / Password / Username และสถานะ Auth
+## 2. Name / Email / Password และสถานะ Auth
 
-สถานะ public Auth settings ที่ตรวจแล้วของโปรเจกต์ `cjrzxvpdayjxopwjbjer`: `email=true`, `disable_signup=false`, `mailer_autoconfirm=false`, `google=false`, `facebook=false` หมายถึงสมัครด้วยอีเมลได้และ **ต้องยืนยันอีเมล** ส่วน Google/Facebook ยังไม่เปิด ไม่ใช่ค่าที่เอกสารนี้เปลี่ยนให้อัตโนมัติ
+ผู้ใช้ตั้งค่า Google OAuth แล้ว เอกสารนี้ยังไม่ได้ตรวจยืนยัน live Auth/provider settings ปัจจุบันซ้ำ จึงไม่ใช้ค่าที่เคยตรวจเป็นสถานะปัจจุบัน การสมัครด้วยอีเมลต้องยืนยันอีเมลตามข้อกำหนดการใช้งาน และไม่ควรปิด email confirmation
 
-Migration `20261017001204_member_usernames.sql` apply บน remote ที่ตรงกับ configured project แล้ว และ security advisors ไม่มีรายการเตือน ห้าม apply ซ้ำ
+Migration `20261017090152_remove_member_usernames.sql` apply remote แล้วตามที่ผู้ใช้ยืนยัน โดยลบคอลัมน์ username พร้อม constraints/indexes และ trigger/function ล็อก username คงชื่อ/bio/avatar/contacts และข้อมูลโปรไฟล์เดิม ไม่เปลี่ยน RLS ส่วน `20261017001204_member_usernames.sql` เก็บเป็นประวัติ migration เท่านั้น ห้ามแก้หรือ apply ซ้ำ
 
-- สมัครด้วย **Email + Password + Username** ส่ง username ใน user metadata; trigger อ่านเฉพาะเมื่อ trusted `raw_app_meta_data.provider = email` แล้ว trim/lower ก่อนบันทึก
-- Username ต้องตรง `^[a-z0-9_]{3,24}$`, ไม่ซ้ำ และไม่เป็น `admin`, `administrator`, `root`, `support`, `system`, `elephantmaker`; DB unique constraint ป้องกันการแย่งชื่อพร้อมกัน
-- หากไม่ได้ระบุชื่อแสดงผล ค่าเริ่มต้น `name = username`; หลัง claim แล้ว username เปลี่ยนหรือล้างไม่ได้ (validation trigger บังคับทุก role) แต่ **display name (`name`) แก้ได้**
-- โปรไฟล์เดิม/OAuth มี username เป็น `null`; Google เข้าใช้ครั้งแรกให้ไป `/account/setup` เพื่อ claim username ก่อนใช้งานต่อ DB ไม่ใช้ OAuth metadata username
-- หน้าสาธารณะใช้ `/u/username` **ไม่ใช่ email**; ห้ามนำอีเมล Auth ไปแสดงหรือบันทึกใน public profile โดยอัตโนมัติ
+- สมัครด้วย **Name + Email + Password** ใช้ชื่อแสดงผลช่องเดียว รองรับภาษาไทยและชื่อซ้ำ ไม่ต้อง claim username
+- Trigger อ่านชื่อจาก metadata ตามลำดับ `name`, `display_name`, `full_name` ล้าง control characters/ช่องว่างรอบชื่อ และจำกัด 100 ตัวอักษร หากไม่มีชื่อใช้ `Maker` ไม่ใช้ username หรือ Auth email เป็นชื่อสำรอง
+- Google ใช้ชื่อเดิมจาก provider โดยตรงและ avatar HTTPS ที่ปลอดภัย ไม่ต้องผ่านหน้า setup เพื่อจองชื่อ
+- หน้าสาธารณะใช้ `/u/UUID` โดย UUID คือ `profiles.id` ของสมาชิกภายใน ไม่ใช่ username หรือ email; ห้ามนำ Auth email ไปแสดงหรือเติมใน public profile อัตโนมัติ
 - Dashboard → Authentication → Email/password settings: แนะนำ minimum password length **8** ให้ตรงกับแอป; UI จำกัดสูงสุด **128** ตัวอักษร ค่านี้เป็นข้อกำหนด/คำแนะนำ ไม่ใช่ผลยืนยันว่า Dashboard ตั้งไว้แล้ว
 
 ### Production SMTP และการยืนยันอีเมล
@@ -55,6 +54,8 @@ Password reset flow ฝั่งแอป: `resetPasswordForEmail` กำหน�
 
 ## 3. ตั้ง Google OAuth
 
+ผู้ใช้ตั้งค่าแล้ว ขั้นตอนด้านล่างเก็บไว้สำหรับตรวจสอบหรือตั้งค่าใหม่ ไม่ใช่ผลยืนยัน live settings ปัจจุบัน
+
 1. ใน Google Cloud Console ตั้ง OAuth consent screen เลือกข้อมูลจำเป็นและเพิ่มตัวเองเป็น test user ถ้าแอปยังอยู่ Testing
 2. สร้าง OAuth Client ID ชนิด **Web application**
 3. Authorized JavaScript origins ใส่ `http://localhost:3000` และ `https://elephant-maker.vercel.app` (origin เท่านั้น ไม่มี path); หากเปลี่ยน production domain ให้แก้ให้ตรง
@@ -64,7 +65,7 @@ Password reset flow ฝั่งแอป: `resetPasswordForEmail` กำหน�
 https://cjrzxvpdayjxopwjbjer.supabase.co/auth/v1/callback
 ```
 
-5. Supabase → **Authentication → Providers → Google** เปิดใช้งาน ใส่ Client ID และ Client Secret ที่ Google ออกให้ (ขณะตรวจยัง `google=false`; ต้องตั้ง credentials และเปิดเอง)
+5. Supabase → **Authentication → Providers → Google** เปิดใช้งาน ใส่ Client ID และ Client Secret ที่ Google ออกให้
 6. Client Secret ใส่เฉพาะ Supabase Dashboard ห้ามใส่ `NEXT_PUBLIC_*`, Git หรือแชต
 
 ## 4. ตั้ง URL กลับมาที่เว็บ
@@ -85,15 +86,15 @@ Supabase → **Authentication → URL Configuration**:
 - `.SiteURL` ใน email templates ใช้ Site URL ที่ตั้งใน Dashboard: production ต้องชี้ production; หากทดลอง template `.SiteURL` บน local ให้ใช้โปรเจกต์ทดสอบที่ตั้ง Site URL เป็น local
 - Vercel Environment Variable: `NEXT_PUBLIC_SITE_URL=https://elephant-maker.vercel.app` แล้ว redeploy
 
-อย่าใช้ wildcard ทั้ง domain ใน production โดยไม่จำเป็น และลบ local URL เมื่อไม่ใช้ Google/Facebook ยังใช้ Supabase callback ในหัวข้อ 3 ไม่ใช่ URL ของ Vercel
+อย่าใช้ wildcard ทั้ง domain ใน production โดยไม่จำเป็น และลบ local URL เมื่อไม่ใช้ Google ยังใช้ Supabase callback ในหัวข้อ 3 ไม่ใช่ URL ของ Vercel
 
 รายการนี้เป็นค่าที่ต้องตั้งใน Dashboard ยังไม่ได้เปลี่ยนการตั้งค่าบน Supabase หรือ Vercel อัตโนมัติ
 
-**สอง callback คนละหน้าที่:** Google/Facebook ส่งกลับ Supabase `/auth/v1/callback`; Supabase ส่งกลับเว็บเรา `/auth/callback` ซึ่งแลก PKCE code เป็น session
+**สอง callback คนละหน้าที่:** Google ส่งกลับ Supabase `/auth/v1/callback`; Supabase ส่งกลับเว็บเรา `/auth/callback` ซึ่งแลก PKCE code เป็น session
 
-## 5. Facebook / TikTok
+## 5. ช่องทางที่ไม่รองรับ
 
-Facebook: ตั้งแอปใน Meta for Developers เปิด Facebook Login ใส่ Supabase callback URL เดียวกับข้างบนใน Valid OAuth Redirect URIs แล้วใส่ App ID/Secret ใน Supabase Facebook provider ขั้นตอน review/โหมดแอปขึ้นกับเงื่อนไข Meta ปัจจุบัน ช่วงทดลองให้ใช้บัญชีที่เป็น tester/developer ของแอป
+ไม่มี Facebook login ส่วน key `facebook` ใน contact JSON (`line`/`facebook`/`github`) ใช้เก็บลิงก์ติดต่อสาธารณะเท่านั้น ไม่เกี่ยวกับการเข้าสู่ระบบ และยังคงรองรับ
 
 TikTok: ปุ่มปิดไว้ ยังไม่มี integration และไม่ถือว่ารองรับโดยตรงผ่าน Supabase
 
@@ -101,16 +102,16 @@ TikTok: ปุ่มปิดไว้ ยังไม่มี integration แ�
 
 ถ้าเพิ่งแก้ `.env.local` ให้ restart `pnpm dev` แล้ว:
 
-แอปมี signup/setup/confirmation/recovery routes แล้ว รายการต่อไปนี้ยังต้องทดสอบกับบริการ Auth และอีเมลจริงหลังตั้งค่า Dashboard:
+รายการต่อไปนี้ใช้ตรวจสอบ signup/confirmation/recovery และ Google กับบริการ Auth และอีเมลจริง:
 
-1. สมัคร Email/Password/Username → รับเมล → ยืนยันใน browser เดิม → session สำเร็จ; ตรวจ username ถูก trim/lower และ display name เริ่มต้นเท่ากับ username
-2. ทดสอบชื่อซ้ำ/ชื่อสงวน/รูปแบบผิดต้องถูกปฏิเสธ และยังต้องยืนยันอีเมลก่อนใช้งาน
-3. หลังเปิด Google provider: `/login` → Google → `/account/setup` เมื่อยังไม่มี username → claim ครั้งเดียว → `/account`; ตรวจ `profiles.id` ตรง Authentication user และ OAuth name/avatar ปลอดภัย
-4. แก้ display name ได้ แต่เปลี่ยน username หลัง claim ไม่ได้; `/u/username` ไม่แสดงอีเมล Auth
+1. สมัคร Name/Email/Password → รับเมล → ยืนยันใน browser เดิม → session สำเร็จ; ตรวจชื่อภาษาไทยคงเดิม
+2. สมัครด้วยชื่อแสดงผลซ้ำได้ และยังต้องยืนยันอีเมลก่อนใช้งาน
+3. ทดสอบ Google ที่ผู้ใช้ตั้งค่าแล้ว: `/login` → Google → `/account` โดยใช้ชื่อเดิม ไม่ต้อง setup/claim; ตรวจ `profiles.id` ตรง Authentication user และ OAuth name/avatar ปลอดภัย
+4. แก้ชื่อแสดงผลได้ รวมชื่อซ้ำ; `/u/UUID` ไม่แสดงอีเมล Auth
 5. ขอ reset password → เปิด recovery link → `/account/password` → ตั้งรหัสผ่านใหม่; หากใช้ token-hash template ทดสอบทั้ง email/signup และ recovery ตามชนิดที่ route อนุญาต
 6. กดออกจากระบบ → กลับ `/login`; เปิด `/account` โดยไม่ล็อกอิน → ต้องถูกส่งกลับ `/login?next=/account`
 
-หาก provider ยังไม่เปิด ปุ่มจะแจ้งวิธีตั้งค่าในหน้าเว็บ ไม่จำลองว่าเข้าสู่ระบบสำเร็จ หาก DB ยังไม่ได้ migration หน้าบัญชีจะแจ้งว่า schema ยังไม่พร้อม ไม่กลบเป็นรายการว่างสำเร็จ
+หาก Google เข้าสู่ระบบไม่สำเร็จ ให้ตรวจ provider settings และ callback/redirect allowlist ปัจจุบันใน Dashboard โดยไม่จำลองว่าเข้าสู่ระบบสำเร็จ
 
 ## สิ่งที่ยังไม่ใช่ production
 
@@ -131,4 +132,4 @@ pnpm build
 pnpm --package=@electric-sql/pglite --shell-mode dlx "node tests/schema-smoke.mjs"
 ```
 
-PGlite รัน migration และ SQL RLS tests จริงใน PostgreSQL จำลอง พร้อมตรวจ rollback แต่ไม่ได้ทดสอบ Supabase Auth/Storage HTTP API เต็มระบบ OAuth login จริงต้องทดสอบหลังตั้ง Dashboard
+PGlite รัน migration และ SQL RLS tests จริงใน PostgreSQL จำลอง พร้อมตรวจ rollback แต่ไม่ได้ทดสอบ Supabase Auth/Storage HTTP API เต็มระบบ OAuth login จริงต้องทดสอบกับ Google ที่ผู้ใช้ตั้งค่าไว้

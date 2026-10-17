@@ -18,19 +18,19 @@ insert into auth.users(id, raw_user_meta_data) values
  ('11111111-1111-4111-8111-111111111111','{"display_name":"Owner","avatar_url":"javascript:bad","role":"admin"}'),
  ('22222222-2222-4222-8222-222222222222','{"full_name":"Other"}');
 select pg_temp.assert_true((select name = 'Owner' and avatar = '' and contacts = '{}'::jsonb from public.profiles where id = '11111111-1111-4111-8111-111111111111'), 'safe auth profile trigger');
--- Trusted provider metadata, not user-controlled metadata, selects email signup.
+-- Display names support Thai and duplicates, regardless of provider.
 insert into auth.users(id, email, raw_app_meta_data, raw_user_meta_data) values
- ('33333333-3333-4333-8333-333333333333','private@example.test','{"provider":"email"}','{"username":"  Maker_123  "}'),
- ('44444444-4444-4444-8444-444444444444','oauth@example.test','{"provider":"google"}','{"username":"admin","provider":"email","full_name":"OAuth Maker","avatar_url":"https://example.test/avatar.png"}');
-select pg_temp.assert_true((select username = 'maker_123' and name = 'maker_123' from public.profiles where id = '33333333-3333-4333-8333-333333333333'), 'email username normalized and default name');
-select pg_temp.assert_true((select username is null and name = 'OAuth Maker' and avatar = 'https://example.test/avatar.png' from public.profiles where id = '44444444-4444-4444-8444-444444444444'), 'OAuth ignores username and retains safe metadata');
-select pg_temp.assert_true((select bool_and(username is null) from public.profiles where id in ('11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222')), 'missing provider leaves username null');
-select pg_temp.expect_error($sql$insert into auth.users(id,raw_app_meta_data,raw_user_meta_data) values (gen_random_uuid(),'{"provider":"email"}','{"username":" MAKER_123 "}')$sql$, '23505');
-do $$ declare candidate text; begin
- foreach candidate in array array['ab',repeat('a',25),'bad-name','bad name','ééé','','admin','administrator','root','support','system','elephantmaker'] loop
-  perform pg_temp.expect_error(format('insert into auth.users(id,raw_app_meta_data,raw_user_meta_data) values (gen_random_uuid(),%L::jsonb,%L::jsonb)', '{"provider":"email"}', jsonb_build_object('username',candidate)::text), '23514');
- end loop;
-end $$;
+ ('33333333-3333-4333-8333-333333333333','private@example.test','{"provider":"email"}','{"name":"ช่างไทย","display_name":"Ignored","username":"ignored"}'),
+ ('44444444-4444-4444-8444-444444444444','oauth@example.test','{"provider":"google"}','{"full_name":"ช่างไทย","avatar_url":"https://example.test/avatar.png"}');
+select pg_temp.assert_true((select count(*) = 2 from public.profiles where name = 'ช่างไทย'), 'signup and OAuth preserve duplicate Thai names');
+select pg_temp.assert_true((select avatar = 'https://example.test/avatar.png' from public.profiles where id = '44444444-4444-4444-8444-444444444444'), 'OAuth safe avatar');
+insert into auth.users(id,email,raw_user_meta_data) values
+ ('66666666-6666-4666-8666-666666666666','never-public@example.test','{"username":"not_a_name"}'),
+ ('77777777-7777-4777-8777-777777777777','blank@example.test','{"name":"  ","display_name":"ชื่อสำรอง"}'),
+ ('88888888-8888-4888-8888-888888888888','control@example.test','{"name":"\u0001","avatar_url":"http://unsafe.test/a"}');
+select pg_temp.assert_true((select count(*) = 2 and bool_and(name = 'Maker' and avatar = '') from public.profiles where id in ('66666666-6666-4666-8666-666666666666','88888888-8888-4888-8888-888888888888')), 'no username or auth-email fallback');
+select pg_temp.assert_true((select name = 'ชื่อสำรอง' from public.profiles where id = '77777777-7777-4777-8777-777777777777'), 'blank name fallback');
+select pg_temp.assert_true(not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'profiles' and column_name in ('username','email')), 'no public username or email column');
 insert into public.projects(id,slug,title,summary,category,cover,owner_id,status) values
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','rls-public','Public','Summary','อิเล็กทรอนิกส์','cover.jpg','11111111-1111-4111-8111-111111111111','published'),
  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','rls-draft','Draft','','งานพิมพ์ 3D','','22222222-2222-4222-8222-222222222222','draft');
@@ -68,7 +68,7 @@ select pg_temp.assert_true((select count(*) = 1 from storage.objects where bucke
 select pg_temp.assert_true((select count(*) = 0 from storage.objects where name like '%/draft.bin'), 'anon draft asset hidden');
 select pg_temp.assert_true(not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'profiles' and column_name = 'email'), 'profiles never expose auth email');
 select pg_temp.expect_error('select email from auth.users','42501');
-select pg_temp.expect_error('update public.profiles set username = ''anon_claim''','42501');
+select pg_temp.expect_error('update public.profiles set name = ''Anonymous''','42501');
 select pg_temp.expect_error('insert into public.tags(name,slug) values (''Bad'',''bad'')','42501');
 select pg_temp.expect_error('update public.projects set title = ''Bad''','42501');
 reset role;
@@ -78,14 +78,10 @@ select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222'
 select set_config('request.jwt.claims','{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}',true);
 select pg_temp.assert_true((select count(*) = 2 from public.projects where slug in ('rls-public','rls-draft')), 'owner reads own draft and public');
 select pg_temp.assert_true((select count(*) = 1 from storage.objects where name like '%/draft.bin'), 'owner draft asset');
-select pg_temp.expect_error('update public.profiles set username = ''maker_123'' where id = ''22222222-2222-4222-8222-222222222222''','23505');
-select pg_temp.expect_error('update public.profiles set username = ''UPPER'' where id = ''22222222-2222-4222-8222-222222222222''','23514');
-select pg_temp.expect_error('update public.profiles set username = ''admin'' where id = ''22222222-2222-4222-8222-222222222222''','23514');
-update public.profiles set username = 'owner_claim' where id = '22222222-2222-4222-8222-222222222222';
-update public.profiles set username = username where id = '22222222-2222-4222-8222-222222222222';
-select pg_temp.assert_true((select username = 'owner_claim' from public.profiles where id = '22222222-2222-4222-8222-222222222222'), 'owner claims once');
-select pg_temp.expect_error('update public.profiles set username = ''renamed'' where id = ''22222222-2222-4222-8222-222222222222''','23514');
-select pg_temp.expect_error('update public.profiles set username = null where id = ''22222222-2222-4222-8222-222222222222''','23514');
+update public.profiles set name = 'ช่างไทย' where id = '22222222-2222-4222-8222-222222222222';
+select pg_temp.assert_true((select count(*) = 3 from public.profiles where name = 'ช่างไทย'), 'owner can rename to duplicate');
+update public.profiles set name = 'Forbidden' where id = '11111111-1111-4111-8111-111111111111';
+select pg_temp.assert_true((select name = 'Owner' from public.profiles where id = '11111111-1111-4111-8111-111111111111'), 'cannot rename another member');
 select pg_temp.expect_error('select email from auth.users','42501');
 update public.profiles set bio = 'Owner bio' where id = '22222222-2222-4222-8222-222222222222';
 update public.projects set title = 'Edited draft' where slug = 'rls-draft';
@@ -167,12 +163,12 @@ do $$ declare t text; n integer; begin
  update public.profiles set bio = 'Hijacked' where id = '22222222-2222-4222-8222-222222222222';
  get diagnostics n = row_count;
  perform pg_temp.assert_true(n = 0,'nonowner profile update filtered');
-  update public.profiles set username = 'stolen_claim' where id = '44444444-4444-4444-8444-444444444444';
+  update public.profiles set name = 'Stolen name' where id = '44444444-4444-4444-8444-444444444444';
   get diagnostics n = row_count;
-  perform pg_temp.assert_true(n = 0,'nonowner username claim filtered');
-  update public.profiles set username = 'stolen_name' where id = '22222222-2222-4222-8222-222222222222';
+  perform pg_temp.assert_true(n = 0,'nonowner OAuth name update filtered');
+  update public.profiles set name = 'Stolen name' where id = '22222222-2222-4222-8222-222222222222';
   get diagnostics n = row_count;
-  perform pg_temp.assert_true(n = 0,'nonowner username change filtered');
+  perform pg_temp.assert_true(n = 0,'nonowner name update filtered');
 end $$;
 select pg_temp.assert_true((select count(*) = 0 from storage.objects where name like '%/draft.bin'), 'nonowner draft storage hidden');
 reset role;

@@ -3,24 +3,23 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { normalizeUsername, usernameError } from "@/lib/auth/validation";
 
-type Props = { params: Promise<{ username: string }> };
+
+type Props = { params: Promise<{ id: string }> };
 
 async function ProfileContent({ params }: Props) {
-  const { username: input } = await params;
-  const username = normalizeUsername(input);
-  if (usernameError(username)) notFound();
+  const { id } = await params;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) notFound();
   const supabase = await createClient(await cookies());
   // Public fields only. Email and Auth metadata are never part of this query.
-  const { data: profile, error } = await supabase.from("profiles").select("id,name,username,bio").eq("username", username).maybeSingle();
+  const { data: profile, error } = await supabase.from("profiles").select("id,name,bio").eq("id", id).maybeSingle();
   if (error) return <p role="alert">โหลดโปรไฟล์ไม่สำเร็จ กรุณาลองใหม่ภายหลัง</p>;
   if (!profile) notFound();
   const { data: projects, error: projectsError } = await supabase.from("projects").select("id,title,slug,summary").eq("owner_id", profile.id).eq("status", "published").order("published_at", { ascending: false });
   return <>
     <section className="panel space-y-3 p-6">
       <h1 className="break-words text-3xl font-bold">{profile.name}</h1>
-      <p className="text-[var(--brand)]">@{profile.username}</p>
+
       {profile.bio && <p className="whitespace-pre-wrap break-words">{profile.bio}</p>}
     </section>
     <section className="space-y-4">

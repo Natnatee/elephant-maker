@@ -43,7 +43,7 @@ pnpm --package=playwright --shell-mode dlx "node tests/browser-smoke.mjs"
 - `/projects/test-esp32c3` — การ์ด mock **เทสesp32c3** ใช้รูปบอร์ดจริง ปุ่มแฟลชเปิด modal เลือกบอร์ด → BOOT/RESET → ตรวจ → ติดตั้ง → RESET
 - `/submit` — ฟอร์ม 3 ขั้น เลือกรูปปก ดูตัวอย่าง บันทึกและเปิดร่างใน localStorage
 - `/submit/firmware-guide` — คู่มือเตรียม binary และข้อมูล manifest โดยไม่เดา offset
-- `/login` — Google/Facebook OAuth จริงผ่าน Supabase (ต้องเปิด provider ใน Dashboard); TikTok ปิดไว้
+- `/login` — สมัคร/เข้าสู่ระบบด้วยชื่อ Email Password หรือ Google ผ่าน Supabase ไม่มี Facebook login
 - `/account` — ตรวจสมาชิกจาก Supabase แสดงโปรไฟล์และร่างของบัญชี
 - `/login/demo` — sandbox สมาชิกจำลองเดิม ไม่มีสิทธิ์เข้าถึงข้อมูลจริง
 
@@ -161,13 +161,19 @@ Next.js 16 ใช้ **proxy.ts** แทน middleware.ts การสร้า�
 
 เปิด `cacheComponents`/`partialPrefetching` อยู่ ดังนั้นเมื่อใช้ server client ในหน้า ให้เรียกจาก child component ใต้ `<Suspense>` และอย่า cache ข้อมูล session ข้ามผู้ใช้
 
-**OAuth จริงพร้อมแล้ว แต่ cloud ยังต้องตั้งค่า** มี migration 10 ตาราง (รวม `step_files`) พร้อม RLS, profile trigger, private Storage bucket/policies และ typed clients แล้ว และ apply บน Supabase cloud ผ่าน MCP แล้ว แต่ Google/Facebook provider ยังต้องตั้งใน Dashboard ดูขั้นตอนภาษาไทยที่ [supabase/SETUP.md](supabase/SETUP.md)
+ระบบสมาชิกใช้ Supabase Auth และ Google OAuth มี 10 ตารางพร้อม RLS, profile trigger, private Storage bucket/policies และ typed clients และ apply migration บน cloud แล้ว ผู้ใช้ตั้งค่า Google provider ผ่าน Dashboard แล้ว ส่วน SMTP/Redirect URLs ให้ตรวจตาม [supabase/SETUP.md](supabase/SETUP.md)
 
-Schema รองรับขั้นตอนข้อความอย่างเดียวหรือไฟล์อย่างเดียว ชื่อขั้นตอนเว้นว่างได้ `ready` ต้องมีอย่างน้อยหนึ่งขั้นตอนและทุกขั้นตอนมีคำอธิบายที่ไม่ว่างหรือไฟล์แนบ ไม่บังคับวัสดุ รุ่นอุปกรณ์ หรือ `compatibility_notes`; `contacts` โปรเจกต์เป็น optional JSON (`line`/`facebook`/`github`) ไฟล์ทั่วไปจำกัด 50 MiB และ firmware 16 MiB โดย bucket จำกัด 50 MiB รองรับวิดีโอและ Markdown ด้วย UI อัปโหลดยังไม่เชื่อมต่อ Remote รอผู้ดูแลงานหลัก apply ผ่าน MCP และยืนยันผล ไม่ถือว่า apply แล้ว
+Schema รองรับขั้นตอนข้อความอย่างเดียวหรือไฟล์อย่างเดียว ชื่อขั้นตอนเว้นว่างได้ `ready` ต้องมีอย่างน้อยหนึ่งขั้นตอนและทุกขั้นตอนมีคำอธิบายที่ไม่ว่างหรือไฟล์แนบ ไม่บังคับวัสดุ รุ่นอุปกรณ์ หรือ `compatibility_notes`; `contacts` โปรเจกต์เป็น optional JSON (`line`/`facebook`/`github`) ไฟล์ทั่วไปจำกัด 50 MiB และ firmware 16 MiB โดย bucket จำกัด 50 MiB รองรับวิดีโอและ Markdown ด้วย UI อัปโหลดยังไม่เชื่อมต่อ
 
-`/account` ตรวจผู้ใช้ผ่าน `getUser()` และอ่านเฉพาะโปรไฟล์/ร่างของตนเอง Callback ตรวจปลายทางภายในเว็บและแลก PKCE code; signout รับ POST พร้อมตรวจ Origin หน้า login ตรวจ provider settings ก่อน redirect และ TikTok ยังปิดไว้
+`/account` ตรวจผู้ใช้ผ่าน `getUser()` และอ่านเฉพาะโปรไฟล์/ร่างของตนเอง Callback ตรวจปลายทางภายในเว็บและแลก PKCE code; signout รับ POST พร้อมตรวจ Origin หน้า login ตรวจ Google provider settings ก่อน redirect ไม่แสดง provider อื่น
 
 หน้าโปรเจกต์ยังใช้ JSON และฟอร์มยังเป็น local draft ไม่อัปโหลดงานหรือไฟล์เข้า DB อัตโนมัติ ไม่มี service-role key ในแอป
+
+### ชื่อสมาชิก (ไม่มี username)
+
+สมัครด้วย **Name + Email + Password** ใช้ชื่อแสดงผลช่องเดียว รองรับภาษาไทยและชื่อซ้ำ Google ใช้ชื่อเดิมจาก provider โดยตรง ไม่ต้อง setup/claim ชื่อ โปรไฟล์สาธารณะใช้ `/u/UUID` (`profiles.id` ของสมาชิกภายใน) ไม่ใช่ username หรือ email และไม่เปิดเผย Auth email
+
+Migration `supabase/migrations/20261017090152_remove_member_usernames.sql` ลบ username โดยรักษาข้อมูลโปรไฟล์เดิมและ RLS และ apply บน remote แล้ว; migration เพิ่ม username เก่าเก็บเป็นประวัติ หน้าเว็บใช้ชื่อเดียวและไม่บังคับ onboarding แล้ว
 
 ### ตรวจ schema และ RLS ในเครื่อง
 

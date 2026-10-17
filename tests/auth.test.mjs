@@ -25,14 +25,6 @@ function loadModule(file, imports = {}) {
 const redirect = loadModule("../src/lib/auth/redirect.ts");
 const validation = loadModule("../src/lib/auth/validation.ts");
 
-test("validation normalizes usernames and checks boundaries and reserved names", () => {
-  assert.equal(validation.normalizeUsername("  UsEr_123  "), "user_123");
-  for (const value of ["abc", "A_1", "a".repeat(24), "  hello  "])
-    assert.equal(validation.usernameError(value), null, value);
-  for (const value of ["", "ab", "a".repeat(25), "a-b", "a b", "ผู้ใช้", "abc\nxyz", "admin", " ADMIN ", "administrator", "root", "support", "system", "elephantmaker"])
-    assert.equal(typeof validation.usernameError(value), "string", value);
-});
-
 test("password and display name validation enforce exact boundaries", () => {
   for (const length of [8, 128]) assert.equal(validation.passwordError("a".repeat(length)), null);
   for (const length of [0, 7, 129]) assert.equal(typeof validation.passwordError("a".repeat(length)), "string");
@@ -42,18 +34,12 @@ test("password and display name validation enforce exact boundaries", () => {
     assert.equal(typeof validation.displayNameError(value), "string");
 });
 
-test("post-auth paths wrap safe destinations and only bypass setup for the exact password pathname", () => {
+test("post-auth paths go directly to safe destinations without onboarding", () => {
   for (const [value, expected] of [
-    [null, "/account/setup?next=%2Faccount"],
-    [undefined, "/account/setup?next=%2Faccount"],
-    ["https://evil.invalid", "/account/setup?next=%2Faccount"],
-    ["/account/setup?next=/submit", "/account/setup?next=%2Faccount"],
-    ["/account/password", "/account/password"],
-    ["/account/password?next=https://evil.invalid#secret", "/account/password"],
-    ["/account/password/", "/account/setup?next=%2Faccount%2Fpassword%2F"],
-    ["/account/password-extra", "/account/setup?next=%2Faccount%2Fpassword-extra"],
-    ["/ACCOUNT/password", "/account/setup?next=%2FACCOUNT%2Fpassword"],
-    ["/submit?q=a&tab=b#guide", "/account/setup?next=%2Fsubmit%3Fq%3Da%26tab%3Db%23guide"],
+    [null, "/account"], [undefined, "/account"],
+    ["https://evil.invalid", "/account"],
+    ["/account/setup?next=/submit", "/account"],
+    ...["/account/password", "/account/password?next=https://evil.invalid#secret", "/account/password/", "/account/password-extra", "/ACCOUNT/password", "/submit?q=a&tab=b#guide"].map(value => [value, value]),
   ]) assert.equal(redirect.getPostAuthPath(value), expected, String(value));
 });
 
@@ -128,7 +114,7 @@ test("callback sanitizes thrown exchange errors and omitted or malicious next de
   for (const next of [null, "https://evil.invalid", "/%5cevil.invalid", "/auth/confirm", "/account/setup?next=/submit"]) {
     const url = new URL("http://localhost:3000/auth/callback?code=private-code");
     if (next !== null) url.searchParams.set("next", next);
-    await assertRedirect(await success.GET(new Request(url)), "/account/setup?next=%2Faccount", ["private-code"]);
+    await assertRedirect(await success.GET(new Request(url)), "/account", ["private-code"]);
   }
 });
 
@@ -146,14 +132,14 @@ test("confirm rejects missing tokens and unsafe OTP types without calling auth",
 test("confirm verifies supported OTP types and safely routes successful confirmations", async () => {
   for (const type of ["email", "signup", "recovery"]) {
     for (const [next, target] of [
-      [null, "/account/setup?next=%2Faccount"],
-      ["/submit?q=one#two", "/account/setup?next=%2Fsubmit%3Fq%3Done%23two"],
-      ["https://evil.invalid", "/account/setup?next=%2Faccount"],
-      ["//evil.invalid", "/account/setup?next=%2Faccount"],
-      ["/%5cevil.invalid", "/account/setup?next=%2Faccount"],
-      ["/account/setup", "/account/setup?next=%2Faccount"],
-      ["/auth/callback", "/account/setup?next=%2Faccount"],
-      ["/account/password?token=discard-me", "/account/password"],
+      [null, "/account"],
+      ["/submit?q=one#two", "/submit?q=one#two"],
+      ["https://evil.invalid", "/account"],
+      ["//evil.invalid", "/account"],
+      ["/%5cevil.invalid", "/account"],
+      ["/account/setup", "/account"],
+      ["/auth/callback", "/account"],
+      ["/account/password?tab=security#reset", "/account/password?tab=security#reset"],
     ]) {
       let calls = 0;
       const route = authRoute("../src/app/auth/confirm/route.ts", { verifyOtp: async (options) => {
@@ -165,7 +151,7 @@ test("confirm verifies supported OTP types and safely routes successful confirma
       url.searchParams.set("token_hash", "private-token");
       url.searchParams.set("type", type);
       if (next !== null) url.searchParams.set("next", next);
-      await assertRedirect(await route.GET(new Request(url)), type === "recovery" ? "/account/password" : target, ["private-token", "discard-me"], true);
+      await assertRedirect(await route.GET(new Request(url)), type === "recovery" ? "/account/password" : target, ["private-token"], true);
       assert.equal(calls, 1);
     }
   }
@@ -186,22 +172,20 @@ test("confirm sanitizes returned and thrown auth errors for every supported type
 function accountActions(options = {}) {
   const calls = [];
   const store = {};
-  const navigation = new Error("test redirect");
   const builder = {
     select(value) { calls.push(["select", value]); return this; },
     update(value) { calls.push(["update", value]); return this; },
     eq(key, value) { calls.push(["eq", key, value]); return this; },
-    is(key, value) { calls.push(["is", key, value]); return this; },
     async maybeSingle() {
       calls.push(["maybeSingle"]);
-      return options.results?.shift() ?? { data: { username: null }, error: null };
+      if (options.databaseThrows) throw new Error("private-database-secret");
+      return options.results?.shift() ?? { data: { id: "owner-id" }, error: null };
     },
   };
   const actions = loadModule("../src/app/account/actions.ts", {
     "@/lib/auth/redirect": redirect,
     "@/lib/auth/validation": validation,
     "next/headers": { cookies: async () => { calls.push(["cookies"]); return store; } },
-    "next/navigation": { redirect: (path) => { calls.push(["redirect", path]); throw navigation; } },
     "next/cache": { revalidatePath: (path) => calls.push(["revalidate", path]) },
     "@/lib/supabase/server": { createClient: async (received) => {
       assert.equal(received, store);
@@ -216,7 +200,7 @@ function accountActions(options = {}) {
       };
     } },
   });
-  return { actions, calls, navigation };
+  return { actions, calls };
 }
 
 function form(values) {
@@ -225,81 +209,52 @@ function form(values) {
   return data;
 }
 
-test("completeProfile normalizes username and performs owner-scoped, unset-only update", async () => {
-  const { actions, calls, navigation } = accountActions({ results: [
-    { data: { username: null }, error: null },
-    { data: { username: "new_user" }, error: null },
-  ] });
-  await assert.rejects(actions.completeProfile({}, form({ username: " New_USER ", next: "//evil.invalid", id: "attacker-id" })), error => error === navigation);
-  assert.deepEqual(calls, [
-    ["cookies"], ["client"], ["getUser"],
-    ["from", "profiles"], ["select", "username"], ["eq", "id", "owner-id"], ["maybeSingle"],
-    ["from", "profiles"], ["update", { username: "new_user" }], ["eq", "id", "owner-id"], ["is", "username", null], ["select", "username"], ["maybeSingle"],
-    ["revalidate", "/account"], ["redirect", "/account"],
-  ]);
-});
-
-test("completeProfile preserves existing usernames and redirects to safe next", async () => {
-  const { actions, calls, navigation } = accountActions({ results: [{ data: { username: "existing" }, error: null }] });
-  await assert.rejects(actions.completeProfile({}, form({ username: "different", next: "/submit" })), error => error === navigation);
-  assert.ok(!calls.some(([method]) => method === "update"));
-  assert.deepEqual(calls.at(-1), ["redirect", "/submit"]);
-});
-
-test("account actions reject invalid input before accessing cookies or auth", async () => {
-  for (const [action, values] of [["completeProfile", { username: "admin" }], ["completeProfile", {}], ["updateDisplayName", { name: "a\u0000b" }], ["updateDisplayName", {}]]) {
+test("display name rejects invalid input before accessing cookies or auth", async () => {
+  for (const values of [{}, { name: "   " }, { name: "a b" }, { name: "a".repeat(101) }]) {
     const { actions, calls } = accountActions();
-    assert.equal(typeof (await actions[action]({}, form(values))).error, "string");
+    assert.equal(typeof (await actions.updateDisplayName({}, form(values))).error, "string");
     assert.deepEqual(calls, []);
   }
 });
 
-test("account actions require verified user and sanitize authentication failures", async () => {
+test("display name requires verified user and sanitizes authentication failures", async () => {
   for (const options of [
     { auth: { data: { user: null }, error: null } },
     { auth: { data: { user: { id: "owner-id" } }, error: { message: "private-auth-secret" } } },
     { throws: true },
   ]) {
-    for (const action of ["completeProfile", "updateDisplayName"]) {
-      const { actions, calls } = accountActions(options);
-      const result = await actions[action]({}, form({ username: "valid_user", name: "Alice" }));
-      assert.equal(typeof result.error, "string");
-      assert.ok(!JSON.stringify(result).includes("private-auth-secret"));
-      assert.ok(!calls.some(([method]) => ["from", "revalidate", "redirect"].includes(method)));
-    }
+    const { actions, calls } = accountActions(options);
+    const result = await actions.updateDisplayName({}, form({ name: "ชื่อซ้ำได้" }));
+    assert.equal(typeof result.error, "string");
+    assert.ok(!JSON.stringify(result).includes("private-auth-secret"));
+    assert.ok(!calls.some(([method]) => ["from", "revalidate"].includes(method)));
   }
 });
 
-test("updateDisplayName trims input, scopes update to owner and revalidates profile", async () => {
-  for (const username of ["existing", null]) {
-    const { actions, calls } = accountActions({ results: [{ data: { username }, error: null }] });
-    const result = await actions.updateDisplayName({}, form({ name: "  Alice  ", id: "attacker-id" }));
-    assert.equal(typeof result.success, "string");
+test("updateDisplayName trims Thai names, allows duplicates and scopes writes to verified owner", async () => {
+  const { actions, calls } = accountActions();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    calls.length = 0;
+    assert.deepEqual(await actions.updateDisplayName({}, form({ name: "  ชื่อซ้ำได้  ", id: "attacker-id" })), { success: "บันทึกชื่อแล้ว" });
     assert.deepEqual(calls, [
-      ["cookies"], ["client"], ["getUser"], ["from", "profiles"], ["update", { name: "Alice" }],
-      ["eq", "id", "owner-id"], ["select", "username"], ["maybeSingle"], ["revalidate", "/account"],
-      ...(username ? [["revalidate", "/u/existing"]] : []),
+      ["cookies"], ["client"], ["getUser"], ["from", "profiles"], ["update", { name: "ชื่อซ้ำได้" }],
+      ["eq", "id", "owner-id"], ["select", "id"], ["maybeSingle"],
+      ["revalidate", "/account"], ["revalidate", "/u/owner-id"],
     ]);
   }
 });
 
-test("account profile read/write failures and update races return sanitized errors", async () => {
-  const secret = "private-database-secret";
-  const failure = { data: null, error: { message: secret } };
-  for (const [action, results] of [
-    ["completeProfile", [failure]],
-    ["completeProfile", [{ data: null, error: null }]],
-    ["completeProfile", [{ data: { username: null }, error: null }, failure]],
-    ["completeProfile", [{ data: { username: null }, error: null }, { data: null, error: { code: "23505", message: secret } }]],
-    ["completeProfile", [{ data: { username: null }, error: null }, { data: null, error: null }]],
-    ["updateDisplayName", [failure]],
-    ["updateDisplayName", [{ data: null, error: null }]],
+test("profile write failures and update races return sanitized errors without revalidation", async () => {
+  for (const options of [
+    { results: [{ data: null, error: { message: "private-database-secret" } }] },
+    { results: [{ data: null, error: null }] },
+    { databaseThrows: true },
   ]) {
-    const { actions, calls } = accountActions({ results });
-    const result = await actions[action]({}, form({ username: "valid_user", name: "Alice" }));
+    const { actions, calls } = accountActions(options);
+    const result = await actions.updateDisplayName({}, form({ name: "Alice" }));
     assert.equal(typeof result.error, "string");
-    assert.ok(!JSON.stringify(result).includes(secret));
-    assert.ok(!calls.some(([method]) => ["revalidate", "redirect"].includes(method)));
+    assert.ok(!JSON.stringify(result).includes("private-database-secret"));
+    assert.ok(!calls.some(([method]) => method === "revalidate"));
   }
 });
 
@@ -338,11 +293,11 @@ test("successful callback exchanges PKCE code and never redirects to another ori
     return { error: null };
   });
   for (const [next, target] of [
-    ["/submit", "/account/setup?next=%2Fsubmit"],
-    ["//evil.invalid", "/account/setup?next=%2Faccount"],
-    ["/account/setup", "/account/setup?next=%2Faccount"],
-    ["/account/password?token=private", "/account/password"],
-    ["/projects/example?tab=files#guide", "/account/setup?next=%2Fprojects%2Fexample%3Ftab%3Dfiles%23guide"],
+    ["/submit", "/submit"],
+    ["//evil.invalid", "/account"],
+    ["/account/setup", "/account"],
+    ["/account/password?tab=security#reset", "/account/password?tab=security#reset"],
+    ["/projects/example?tab=files#guide", "/projects/example?tab=files#guide"],
   ]) {
     const url = new URL("http://localhost:3000/auth/callback");
     url.searchParams.set("code", "test-pkce-code");

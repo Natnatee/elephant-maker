@@ -44,7 +44,7 @@ export default function PasswordForm() {
       setPending(false);
     }
   }
-  if (saved) return <div className="space-y-4"><p role="status">บันทึกรหัสผ่านใหม่แล้ว</p><a href="/account/setup" className="button primary">ไปที่บัญชีของฉัน</a></div>;
+  if (saved) return <div className="space-y-4"><p role="status">บันทึกรหัสผ่านใหม่แล้ว</p><a href="/account" className="button primary">ไปที่บัญชีของฉัน</a></div>;
   return (
     <form onSubmit={submit} className="space-y-4">
       <fieldset disabled={pending} className="space-y-4">

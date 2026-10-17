@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 const KEY = "elephant-maker:mock-identity:v1";
-const providers = ["Google", "Facebook", "TikTok"] as const;
+const providers = ["Google", "TikTok"] as const;
 type Provider = (typeof providers)[number];
 
 export default function MockLogin() {
@@ -47,8 +47,7 @@ export default function MockLogin() {
         <strong>โหมดสาธิตเท่านั้น • ไม่มี OAuth หรือระบบยืนยันตัวตน</strong>
         <p>
           เก็บแค่ชื่อผู้ให้บริการที่เลือกใน localStorage ไม่มี token
-          ไม่ตรวจสิทธิ์ ไม่ใช่ระบบรักษาความปลอดภัย และไม่ส่งข้อมูลให้ Google,
-          Facebook หรือ TikTok
+          ไม่ตรวจสิทธิ์ ไม่ใช่ระบบรักษาความปลอดภัย และไม่ส่งข้อมูลให้ Google หรือ TikTok
         </p>
       </div>
       <button

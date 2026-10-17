@@ -80,24 +80,35 @@ try {
     grant select on storage.objects to anon;
   `);
   phase = "supabase/migrations/*.sql";
-  const usernameMigration = "20261017001204_member_usernames.sql";
-  assert.equal(migrationFiles.at(-1), usernameMigration);
+  let legacySnapshot;
+  let usernameSnapshot;
   for (const name of migrationFiles) {
-    if (name === usernameMigration) {
-      await db.exec(`
-        insert into auth.users(id, raw_app_meta_data, raw_user_meta_data)
-        values ('55555555-5555-4555-8555-555555555555', '{"provider":"email"}', '{"username":"legacy_name","name":"Legacy Maker"}');
-      `);
-    }
+    phase = `migration: ${name}`;
     await db.exec(await readFile(new URL(name, migrationDirectory), "utf8"));
+    if (!legacySnapshot) {
+      await db.exec(`
+        insert into auth.users(id, raw_user_meta_data)
+        values ('55555555-5555-4555-8555-555555555555', '{"name":"Legacy Maker"}');
+        update public.profiles set bio = 'Existing bio', avatar = 'https://example.test/legacy.png',
+          contacts = '{"github":"legacy"}' where id = '55555555-5555-4555-8555-555555555555';
+      `);
+      const { rows } = await db.query("select to_jsonb(p) as profile from public.profiles p where id = '55555555-5555-4555-8555-555555555555'");
+      legacySnapshot = rows[0].profile;
+    }
+    const { rows } = await db.query("select to_jsonb(p) - 'username' as profile from public.profiles p where id = '55555555-5555-4555-8555-555555555555'");
+    assert.deepEqual(rows[0].profile, usernameSnapshot ?? legacySnapshot, `${name}: existing profile preserved`);
+    const { rows: columns } = await db.query("select 1 from information_schema.columns where table_schema = 'public' and table_name = 'profiles' and column_name = 'username'");
+    if (columns.length && !usernameSnapshot) {
+      await db.exec("update public.profiles set username = 'legacy_claim' where id = '55555555-5555-4555-8555-555555555555'");
+      const { rows } = await db.query("select to_jsonb(p) - 'username' as profile from public.profiles p where id = '55555555-5555-4555-8555-555555555555'");
+      usernameSnapshot = rows[0].profile;
+    }
   }
-  const { rows: legacy } = await db.query(`
-    select username, name from public.profiles
-    where id = '55555555-5555-4555-8555-555555555555'
-  `);
-  assert.deepEqual(legacy, [{ username: null, name: "Legacy Maker" }]);
+  assert.ok(usernameSnapshot, "fixture traversed username migration");
+  const { rows: columns } = await db.query("select 1 from information_schema.columns where table_schema = 'public' and table_name = 'profiles' and column_name = 'username'");
+  assert.equal(columns.length, 0, "final schema has no username column");
   await db.exec("delete from auth.users where id = '55555555-5555-4555-8555-555555555555'");
-  console.log("PASS: all migrations executed; existing profile preserved with null username.");
+  console.log("PASS: all migrations executed; legacy profile preserved through username addition, claim, and removal.");
 
   const tables = [
     "auth.users",

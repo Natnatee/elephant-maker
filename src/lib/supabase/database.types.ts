@@ -39,7 +39,7 @@ type Table<
 };
 type Profile = {
   id: string;
-  username: string | null;
+
   name: string;
   bio: string;
   avatar: string;
@@ -130,7 +130,7 @@ export type Database = {
         Profile,
         "id",
         [],
-        "id" | "username" | "name" | "bio" | "avatar" | "contacts"
+        "id" | "name" | "bio" | "avatar" | "contacts"
       >;
       projects: Table<
         Project,

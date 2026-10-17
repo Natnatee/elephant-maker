@@ -65,16 +65,19 @@ test("browser helper uses the public client configuration", () => {
   });
   assert.equal(helper.createClient(), client);
 });
-test("server helper reads async cookies and writes cookie options", async () => {
+test("server helper waits for request time before initializing Auth, with implicit or supplied cookies", async () => {
   const writes = [];
+  let requestReady = false;
+  let connectionCalls = 0;
   const store = {
     getAll: () => [{ name: "session", value: "old" }],
     set: (...args) => writes.push(args),
   };
   const helper = loadModule("../src/lib/supabase/server.ts", {
     "./config": config,
-    "next/headers": { cookies: async () => store },
-    "@supabase/ssr": { createServerClient: (_url, _key, options) => options },
+    "next/headers": { cookies: async () => { assert.ok(requestReady); return store; } },
+    "next/server": { connection: async () => { connectionCalls++; await Promise.resolve(); requestReady = true; } },
+    "@supabase/ssr": { createServerClient: (_url, _key, options) => { assert.ok(requestReady, "SDK session/clock initialization must run after connection()"); return options; } },
   });
   const client = await helper.createClient();
   assert.equal(client.cookies.getAll()[0].value, "old");
@@ -82,6 +85,7 @@ test("server helper reads async cookies and writes cookie options", async () => 
     { name: "session", value: "new", options: { httpOnly: true } },
   ]);
   assert.deepEqual(writes, [["session", "new", { httpOnly: true }]]);
+  requestReady = false;
   const readonly = await helper.createClient({
     getAll: () => [],
     set: () => {
@@ -91,6 +95,25 @@ test("server helper reads async cookies and writes cookie options", async () => 
   assert.doesNotThrow(() =>
     readonly.cookies.setAll([{ name: "session", value: "new", options: {} }]),
   );
+  assert.equal(connectionCalls, 2);
+});
+
+test("server helper never initializes Auth while prerendering is still suspended", async () => {
+  let initializeCalls = 0;
+  let continueRequest;
+  const ready = new Promise((resolve) => { continueRequest = resolve; });
+  const helper = loadModule("../src/lib/supabase/server.ts", {
+    "./config": config,
+    "next/headers": { cookies: async () => { throw new Error("Supplied cookie store should be used"); } },
+    "next/server": { connection: () => ready },
+    "@supabase/ssr": { createServerClient: () => { initializeCalls++; return {}; } },
+  });
+  const client = helper.createClient({ getAll: () => [], set: () => {} });
+  await Promise.resolve();
+  assert.equal(initializeCalls, 0);
+  continueRequest();
+  await client;
+  assert.equal(initializeCalls, 1);
 });
 test("proxy calls getClaims and preserves refreshed cookies and cache headers across writes", async () => {
   let verified = false;

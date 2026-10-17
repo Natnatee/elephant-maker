@@ -22,18 +22,12 @@ export default function LoginPage({
   searchParams: SearchParams;
 }) {
   return (
-    <main className="container mx-auto min-h-screen max-w-2xl space-y-6 bg-[var(--background)] px-4 py-12 text-[var(--foreground)] sm:px-8">
-      <header className="space-y-3">
-        <p className="text-sm font-bold text-[var(--brand)]">ELEPHANT MAKER</p>
-        <h1 className="text-3xl font-bold">เข้าสู่ระบบบัญชีผู้สร้าง</h1>
-        <p className="text-[var(--muted)]">
-          เข้าสู่ระบบหรือสมัครสมาชิกด้วยอีเมล หรือใช้ Google / Facebook
-                    เพื่อจัดการข้อมูลสมาชิกและร่างผลงานของคุณ
-        </p>
-      </header>
-      <Suspense fallback={<p role="status">กำลังเตรียมการเข้าสู่ระบบ…</p>}>
-        <LoginContent searchParams={searchParams} />
-      </Suspense>
+    <main className="auth-page">
+      <div className="auth-shell">
+        <Suspense fallback={<p role="status" className="auth-loading">กำลังเตรียมการเข้าสู่ระบบ…</p>}>
+          <LoginContent searchParams={searchParams} />
+        </Suspense>
+      </div>
     </main>
   );
 }

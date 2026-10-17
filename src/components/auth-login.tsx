@@ -4,7 +4,10 @@ import { useRef, useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import { getSafeNextPath } from "@/lib/auth/redirect";
-import { normalizeUsername, usernameError, passwordError } from "@/lib/auth/validation";
+import { displayNameError, passwordError } from "@/lib/auth/validation";
+import { ElephantMark } from "@/components/icons";
+import GoogleMark from "@/components/google-mark";
+import "./auth-login.css";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -45,11 +48,11 @@ export default function AuthLogin({ next, error }: { next?: string; error?: stri
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
-    const username = normalizeUsername(String(form.get("username") ?? ""));
+    const name = String(form.get("name") ?? "");
     setMessage("");
     setFailed(false);
     if (mode === "register") {
-      const validation = usernameError(username) || passwordError(password);
+      const validation = displayNameError(name) || passwordError(password);
       if (validation) {
         setFailed(true);
         setMessage(validation);
@@ -62,19 +65,7 @@ export default function AuthLogin({ next, error }: { next?: string; error?: stri
     try {
       const supabase = createClient();
       const auth = supabase.auth;
-      if (mode === "register") {
-        const { data: existing, error: lookupError } = await supabase.from("profiles").select("id").eq("username", username).maybeSingle();
-        if (lookupError) {
-          setFailed(true);
-          setMessage("ตรวจสอบ Username ไม่สำเร็จ กรุณาลองใหม่ภายหลัง");
-          return;
-        }
-        if (existing) {
-          setFailed(true);
-          setMessage("Username นี้มีคนใช้แล้ว กรุณาเลือกชื่ออื่น");
-          return;
-        }
-      }
+
       if (mode === "forgot") {
         const { error } = await auth.resetPasswordForEmail(email, {
           redirectTo: callbackUrl("/account/password"),
@@ -92,7 +83,7 @@ export default function AuthLogin({ next, error }: { next?: string; error?: stri
             email,
             password,
             options: {
-              data: { username, name: username },
+              data: { name: name.trim() },
               emailRedirectTo: callbackUrl(getSafeNextPath(next)),
             },
           })
@@ -107,8 +98,7 @@ export default function AuthLogin({ next, error }: { next?: string; error?: stri
         return;
       }
       if (data.session) {
-        const destination = new URL("/account/setup", window.location.origin);
-        destination.searchParams.set("next", getSafeNextPath(next));
+        const destination = new URL(getSafeNextPath(next), window.location.origin);
         window.location.assign(destination.toString());
         navigating = true;
       } else if (mode === "register") {
@@ -129,7 +119,8 @@ export default function AuthLogin({ next, error }: { next?: string; error?: stri
     }
   }
 
-  async function signIn(provider: "google" | "facebook") {
+  async function signIn() {
+      const provider = "google";
     if (busy.current) return;
     busy.current = true;
     setPending(provider);
@@ -150,7 +141,7 @@ export default function AuthLogin({ next, error }: { next?: string; error?: stri
       const settings = (await settingsResponse.json()) as { external?: Record<string, boolean> };
       if (!settings.external?.[provider]) {
         setFailed(true);
-        setMessage(`ยังไม่เปิดใช้งาน ${provider === "google" ? "Google" : "Facebook"} กรุณาใช้อีเมลหรือช่องทางอื่น`);
+        setMessage("ยังไม่เปิดใช้งาน Google กรุณาใช้อีเมล");
         return;
       }
       const { data, error } = await createClient().auth.signInWithOAuth({
@@ -178,65 +169,61 @@ export default function AuthLogin({ next, error }: { next?: string; error?: stri
     }
   }
 
-  const inputClass = "w-full rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 disabled:opacity-60";
-  const buttonClass = "rounded-xl bg-[var(--accent)] px-5 py-3 font-semibold text-[var(--accent-foreground)] disabled:opacity-60";
+  const title = mode === "register" ? "สร้างบัญชีของคุณ" : mode === "forgot" ? "ลืมรหัสผ่าน?" : "ยินดีต้อนรับกลับ";
+  const subtitle = mode === "register" ? "เริ่มสร้างสรรค์ไปกับ Elephant Maker" : mode === "forgot" ? "เราจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้ทางอีเมล" : "เข้าสู่ระบบเพื่อสร้างสรรค์ผลงานต่อ";
 
   return (
-    <section aria-label="บัญชีผู้สร้าง" aria-busy={pending !== null} className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
-      <div className="grid grid-cols-2 gap-2" aria-label="เลือกเข้าสู่ระบบหรือสมัครสมาชิก">
-        {(["login", "register"] as const).map((value) => (
-          <button key={value} type="button" disabled={pending !== null} aria-pressed={mode === value} onClick={() => changeMode(value)} className={`rounded-xl px-4 py-2 font-semibold disabled:opacity-60 ${mode === value ? "bg-[var(--accent)] text-[var(--accent-foreground)]" : "text-[var(--muted)]"}`}>
-            {value === "login" ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}
+    <section aria-labelledby="auth-title" aria-busy={pending !== null} className="auth-card">
+      <header className="auth-header">
+        <ElephantMark size={56} />
+        <p className="auth-brand">ELEPHANT MAKER</p>
+        <h1 id="auth-title">{title}</h1>
+        <p className="auth-subtitle">{subtitle}</p>
+      </header>
+      {error && <p role="alert" className="auth-notice auth-error">{error === "signout_failed" ? "ออกจากระบบไม่สำเร็จ กรุณากลับไปหน้าบัญชีแล้วลองอีกครั้ง" : "เข้าสู่ระบบไม่สำเร็จหรือลิงก์หมดอายุ กรุณาลองใหม่"}</p>}
+      {mode !== "forgot" && (
+        <>
+          <button type="button" disabled={pending !== null} onClick={() => signIn()} className="auth-google">
+            <GoogleMark />
+            {pending === "google" ? "กำลังเชื่อมต่อ…" : "ดำเนินการต่อด้วย Google"}
           </button>
-        ))}
-      </div>
-      {error && (
-        <p role="alert" className="text-sm text-[var(--danger)]">
-          {error === "signout_failed" ? "ออกจากระบบไม่สำเร็จ กรุณากลับไปหน้าบัญชีแล้วลองอีกครั้ง" : "เข้าสู่ระบบไม่สำเร็จหรือลิงก์หมดอายุ กรุณาลองใหม่"}
-        </p>
+          <div className="auth-divider"><span>หรือใช้อีเมล</span></div>
+        </>
       )}
-      {mode === "forgot" && <h2 className="font-semibold">ตั้งรหัสผ่านใหม่</h2>}
-      <form key={mode} onSubmit={submit} className="space-y-4">
-        <fieldset disabled={pending !== null} className="space-y-4">
-          <label className="block space-y-2">
-            <span className="text-sm font-medium">อีเมล</span>
-            <input name="email" type="email" autoComplete="email" required className={inputClass} />
-          </label>
-          {mode !== "forgot" && (
-            <label className="block space-y-2">
-              <span id="auth-password-label" className="text-sm font-medium">รหัสผ่าน</span>
-              <input aria-labelledby="auth-password-label" ref={passwordInput} name="password" type="password" autoComplete={mode === "register" ? "new-password" : "current-password"} required minLength={mode === "register" ? 8 : undefined} maxLength={mode === "register" ? 128 : undefined} aria-describedby={mode === "register" ? "register-password-help" : undefined} className={inputClass} />
-              {mode === "register" && <span id="register-password-help" className="block text-xs text-[var(--muted)]">8–128 ตัวอักษร</span>}
-            </label>
-          )}
+      <form key={mode} onSubmit={submit}>
+        <fieldset disabled={pending !== null} className="auth-fields">
           {mode === "register" && (
-            <label className="block space-y-2">
-              <span id="auth-username-label" className="text-sm font-medium">Username</span>
-              <input aria-labelledby="auth-username-label" name="username" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} required aria-describedby="register-username-help" className={inputClass} />
-              <span id="register-username-help" className="block text-xs text-[var(--muted)]">3–24 ตัวอักษร ใช้ a–z, 0–9 และ _ ใช้เป็นชื่อแสดงเริ่มต้น Username เปลี่ยนภายหลังไม่ได้ แต่ชื่อที่แสดงแก้ไขได้</span>
-            </label>
+            <div className="auth-field">
+              <label htmlFor="auth-name">ชื่อที่แสดง</label>
+              <input id="auth-name" name="name" type="text" autoComplete="name" required maxLength={100} placeholder="ชื่อของคุณ" />
+            </div>
           )}
-          <button type="submit" className={`${buttonClass} w-full`}>
-            {pending === mode ? "กำลังดำเนินการ…" : mode === "register" ? "สมัครสมาชิก" : mode === "forgot" ? "ส่งลิงก์ตั้งรหัสผ่าน" : "เข้าสู่ระบบ"}
+          <div className="auth-field">
+            <label htmlFor="auth-email">อีเมล</label>
+            <input id="auth-email" name="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required placeholder="you@example.com" />
+          </div>
+          {mode !== "forgot" && (
+            <div className="auth-field">
+              <div className="auth-label-row">
+                <label htmlFor="auth-password">รหัสผ่าน</label>
+                {mode === "login" && <button type="button" className="auth-link" onClick={() => changeMode("forgot")}>ลืมรหัสผ่าน?</button>}
+              </div>
+              <input id="auth-password" ref={passwordInput} name="password" type="password" autoComplete={mode === "register" ? "new-password" : "current-password"} required minLength={mode === "register" ? 8 : undefined} maxLength={mode === "register" ? 128 : undefined} aria-describedby={mode === "register" ? "auth-password-help" : undefined} />
+              {mode === "register" && <p id="auth-password-help" className="auth-help">ใช้รหัสผ่าน 8–128 ตัวอักษร</p>}
+            </div>
+          )}
+          <button type="submit" className="auth-submit">
+            {pending === mode ? "กำลังดำเนินการ…" : mode === "register" ? "สร้างบัญชี" : mode === "forgot" ? "ส่งลิงก์ตั้งรหัสผ่าน" : "เข้าสู่ระบบ"}
           </button>
         </fieldset>
       </form>
-      {message && <p role={failed ? "alert" : "status"} aria-live="polite" className={`text-sm ${failed ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>{message}</p>}
-      <button type="button" disabled={pending !== null} onClick={() => changeMode(mode === "forgot" ? "login" : "forgot")} className="text-sm text-[var(--brand)] disabled:opacity-60">
-        {mode === "forgot" ? "กลับไปเข้าสู่ระบบ" : "ลืมรหัสผ่าน?"}
-      </button>
-      {mode !== "forgot" && (
-        <div className="space-y-3 border-t border-[var(--border)] pt-4">
-          <p className="text-center text-sm text-[var(--muted)]">หรือดำเนินการต่อด้วย</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {(["google", "facebook"] as const).map((provider) => (
-              <button key={provider} type="button" disabled={pending !== null} onClick={() => signIn(provider)} className={buttonClass}>
-                {pending === provider ? "กำลังเชื่อมต่อ…" : provider === "google" ? "Google" : "Facebook"}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {message && <p role={failed ? "alert" : "status"} aria-live="polite" className={`auth-notice ${failed ? "auth-error" : "auth-success"}`}>{message}</p>}
+      <footer className="auth-footer">
+        {mode !== "forgot" && <span>{mode === "login" ? "ยังไม่มีบัญชี?" : "มีบัญชีแล้ว?"} </span>}
+        <button type="button" disabled={pending !== null} className="auth-link" onClick={() => changeMode(mode === "login" ? "register" : "login")}>
+          {mode === "login" ? "สมัครสมาชิก" : mode === "forgot" ? "กลับไปเข้าสู่ระบบ" : "เข้าสู่ระบบ"}
+        </button>
+      </footer>
     </section>
   );
 }

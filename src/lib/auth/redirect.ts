@@ -2,10 +2,7 @@ const DEFAULT_NEXT = "/account";
 const INTERNAL_ORIGIN = "https://internal.invalid";
 
 export function getPostAuthPath(value: string | null | undefined): string {
-  const next = getSafeNextPath(value);
-  return new URL(next, INTERNAL_ORIGIN).pathname === "/account/password"
-    ? "/account/password"
-    : `/account/setup?next=${encodeURIComponent(next)}`;
+  return getSafeNextPath(value);
 }
 
 export function getSafeNextPath(value: string | null | undefined): string {
