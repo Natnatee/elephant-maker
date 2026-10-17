@@ -537,6 +537,293 @@ textarea:focus-visible {
 .card-bookmark {
   margin-left: auto;
 }
+.project-markdown {
+  min-width: 0;
+  color: var(--foreground);
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+.project-markdown > * + * {
+  margin-top: 18px;
+}
+.project-markdown h1, .project-markdown h2, .project-markdown h3,
+.project-markdown h4, .project-markdown h5, .project-markdown h6 {
+  font-weight: 600;
+  line-height: 1.5;
+  margin-top: 30px;
+}
+.project-markdown > :first-child {
+  margin-top: 0;
+}
+.project-markdown h1, .project-markdown h2 {
+  font-size: 24px;
+}
+.project-markdown h3 {
+  font-size: 20px;
+}
+.project-markdown ul, .project-markdown ol, .project-article-warning ul {
+  padding-left: 24px;
+}
+.project-markdown ul, .project-article-warning ul {
+  list-style: disc;
+}
+.project-markdown ol {
+  list-style: decimal;
+}
+.project-markdown li + li {
+  margin-top: 8px;
+}
+.project-markdown a, .project-material-link, .project-reference-list a,
+.project-model-downloads a {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.project-markdown img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin: 20px auto;
+}
+.project-markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.project-markdown :not(pre) > code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--surface-soft);
+  font-size: 0.9em;
+}
+.project-markdown blockquote, .project-article-warning {
+  padding: 14px 18px;
+  border-left: 3px solid var(--brand);
+  background: var(--surface-soft);
+  border-radius: 0 8px 8px 0;
+}
+.project-article-warning {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: 14px;
+  line-height: 1.9;
+}
+.project-markdown hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 28px 0;
+}
+.project-reference-list {
+  display: grid;
+  gap: 14px;
+  overflow-wrap: anywhere;
+}
+.project-model-downloads {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.project-model-downloads summary {
+  list-style: none;
+  cursor: pointer;
+}
+.project-model-downloads summary::-webkit-details-marker {
+  display: none;
+}
+.project-model-downloads ul {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: max-content;
+  max-width: 280px;
+  z-index: 5;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow-wrap: anywhere;
+}
+.project-detail-page {
+  padding: 28px 0 48px;
+}
+.project-detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.project-back-link {
+  align-self: flex-start;
+  color: var(--muted);
+  font-size: 14px;
+}
+.project-back-link:hover {
+  color: var(--brand);
+}
+.project-detail-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  overflow: hidden;
+}
+.project-gallery {
+  min-width: 0;
+}
+.project-gallery-main {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--surface);
+}
+.project-gallery-cover {
+  object-fit: cover;
+}
+.project-gallery-contain {
+  object-fit: contain;
+}
+.project-gallery-thumbnails {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px;
+}
+.project-gallery-thumbnail {
+  position: relative;
+  flex: 0 0 88px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  cursor: pointer;
+}
+.project-gallery-thumbnail.selected {
+  border-color: var(--brand);
+}
+.project-gallery-thumbnail:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.project-gallery-label {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 10px;
+}
+.project-hero-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+}
+.project-hero-category {
+  color: var(--brand);
+  font-size: 14px;
+}
+.project-hero-info h1 {
+  font-size: clamp(26px, 2.5vw, 38px);
+  line-height: 1.3;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.project-hero-summary {
+  color: var(--muted);
+  line-height: 1.8;
+}
+.project-hero-meta, .project-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.project-hero-meta span + span {
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+}
+.project-hero-tags {
+  gap: 8px;
+  font-size: 13px;
+}
+.project-hero-buttons {
+  display: flex;
+  gap: 12px;
+}
+.project-hero-buttons > .button {
+  flex: 1;
+  min-width: 0;
+}
+.project-hero-buttons .button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.project-demo-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.project-detail-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  align-items: start;
+  gap: 28px;
+}
+.project-detail-content {
+  min-width: 0;
+  display: grid;
+  gap: 24px;
+}
+.project-content-section {
+  min-width: 0;
+  padding: 28px;
+  display: grid;
+  gap: 20px;
+  scroll-margin-top: 24px;
+}
+.project-related {
+  display: grid;
+  min-width: 0;
+  gap: 20px;
+}
+.project-related-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+@media (max-width: 1099px) {
+  .project-detail-hero, .project-detail-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .project-related {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .project-related-title {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 599px) {
+  .project-hero-info, .project-content-section {
+    padding: 20px;
+  }
+  .project-related {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .project-detail-container, .project-detail-columns {
+    gap: 20px;
+  }
+}
 .empty-state {
   display: flex;
   flex-direction: column;

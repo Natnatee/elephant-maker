@@ -32,7 +32,7 @@ export default function ProjectFlash({ title }: { title: string }) {
           heading.current?.focus();
         }}
       >
-        แฟลช ESP32-C3
+        Flash
       </button>
       <dialog
         ref={dialog}

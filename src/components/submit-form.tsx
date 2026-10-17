@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ProjectMarkdown } from "@/components/project-markdown";
 import {
   useEffect,
   useRef,
@@ -317,9 +318,23 @@ export default function SubmitForm() {
             {draft.category} / {draft.readiness}
           </p>
           <h3 className="font-bold">วัสดุและอุปกรณ์</h3>
-          <p className="whitespace-pre-wrap break-words">{draft.materials}</p>
-          <h3 className="font-bold">ขั้นตอนการทำ</h3>
-          <p className="whitespace-pre-wrap break-words">{draft.steps}</p>
+          <ProjectMarkdown content={draft.materials} />
+          <h3 className="font-bold">บทความ / ขั้นตอนการทำ</h3>
+          <ProjectMarkdown content={draft.steps} />
+          {draft.references.length > 0 && (
+            <div>
+              <h3 className="font-bold">แหล่งอ้างอิง</h3>
+              <ul className="list-inside list-disc">
+                {draft.references.map((reference, index) => (
+                  <li key={index}>
+                    <a href={reference.url} target="_blank" rel="noopener noreferrer">
+                      {reference.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {guideFileList()}
           <h3 className="font-bold">ความเข้ากันได้ / ข้อจำกัด</h3>
           <p className="whitespace-pre-wrap break-words">
@@ -477,11 +492,54 @@ export default function SubmitForm() {
                 {textField("materials", "วัสดุและอุปกรณ์", true, false)}
                 {textField(
                   "steps",
-                  "ขั้นตอนการทำ",
+                  "บทความ / ขั้นตอนการทำ (Markdown)",
                   true,
                   requiresGuide(draft.readiness) &&
                     draft.guideFiles.length === 0,
                 )}
+                <p className="muted text-sm">
+                  บทความและวัสดุรองรับ Markdown: รูป {"![alt](https://example.com/image.jpg)"}
+                  {" • "}ลิงก์ / PDF {"[label](https://example.com/guide.pdf)"}
+                  {" • "}ใช้ URL ที่เข้าถึงได้อยู่แล้ว ระบบนี้ไม่อัปโหลดรูปหรือ PDF
+                </p>
+                <fieldset className="space-y-3">
+                  <legend className="font-semibold">แหล่งอ้างอิง (ไม่บังคับ)</legend>
+                  {draft.references.map((reference, index) => (
+                    <div key={index} className="space-y-2">
+                      <label className="block">
+                        ชื่อแหล่งอ้างอิง {index + 1}
+                        <input
+                          className={inputClass}
+                          value={reference.label}
+                          required
+                          onChange={(event) => update("references", draft.references.map((item, position) =>
+                            position === index ? { ...item, label: event.target.value } : item,
+                          ))}
+                        />
+                      </label>
+                      <label className="block">
+                        URL แหล่งอ้างอิง {index + 1} (http / https)
+                        <input
+                          type="url"
+                          className={inputClass}
+                          value={reference.url}
+                          required
+                          onChange={(event) => update("references", draft.references.map((item, position) =>
+                            position === index ? { ...item, url: event.target.value } : item,
+                          ))}
+                        />
+                      </label>
+                      <button type="button" className={buttonClass}
+                        onClick={() => update("references", draft.references.filter((_, position) => position !== index))}>
+                        ลบแหล่งอ้างอิง {index + 1}
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" className={buttonClass}
+                    onClick={() => update("references", [...draft.references, { label: "", url: "" }])}>
+                    เพิ่มแหล่งอ้างอิง
+                  </button>
+                </fieldset>
                 <label className="block font-semibold">
                   ไฟล์ประกอบคู่มือ (ไม่บังคับหากมีข้อความขั้นตอน)
                   <input

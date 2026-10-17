@@ -103,7 +103,7 @@ const dialog = page.getByRole("dialog", {
   name: "ติดตั้ง · เทสesp32c3",
   exact: true,
 });
-const opener = page.getByRole("button", { name: "แฟลช ESP32-C3", exact: true });
+const opener = page.getByRole("button", { name: "Flash", exact: true });
 const close = dialog.getByRole("button", {
   name: "ปิดหน้าต่างแฟลช",
   exact: true,
@@ -181,7 +181,7 @@ async function assertBusyCannotClose() {
 async function assertClosed() {
   await dialog.waitFor({ state: "hidden" });
   await page.waitForFunction(
-    () => document.activeElement?.textContent.trim() === "แฟลช ESP32-C3",
+    () => document.activeElement?.textContent.trim() === "Flash",
   );
   assert.equal(
     await opener.evaluate((node) => node === document.activeElement),
@@ -212,18 +212,18 @@ try {
     await opener.evaluate((button) => {
       const group = button.parentElement;
       const styles = getComputedStyle(group);
-      const guide = group.querySelector('a[href="#guide-start"]');
       const primary = button.getBoundingClientRect();
-      const secondary = guide.getBoundingClientRect();
+      const bounds = group.getBoundingClientRect();
       return (
         styles.display === "flex" &&
         parseFloat(styles.columnGap) >= 12 &&
         parseFloat(styles.rowGap) >= 12 &&
-        secondary.left - primary.right >= 12
+        group.querySelectorAll(':scope > .button').length === 1 &&
+        Math.abs(primary.width - bounds.width) < 2
       );
     }),
     true,
-    "Project action buttons must have a real 12px gap",
+    "Flash-only projects must show one full-width action", 
   );
   await opener.click();
   await assertFresh();

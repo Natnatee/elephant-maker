@@ -36,7 +36,11 @@
       ],
       "publishedAt": "2026-10-14T09:00:00Z",
       "featured": true,
-      "flashDemo": "esp32-c3-check"
+      "flashDemo": "esp32-c3-check",
+      "references": [
+        { "label": "ESP32-C3 — เอกสารจาก Espressif", "url": "https://docs.espressif.com/projects/esp-idf/en/stable/esp32c3/" },
+        { "label": "GitHub — esptool-js", "url": "https://github.com/espressif/esptool-js" }
+      ]
     },
     {
       "id": "p1",
@@ -298,6 +302,7 @@
       "id": "m-c3-board",
       "projectId": "p8",
       "name": "ESP32-C3 SuperMini · Flash 4 MB",
+      "url": "https://www.espressif.com/sites/default/files/documentation/esp32-c3_datasheet_en.pdf",
       "quantity": 1,
       "unit": "บอร์ด",
       "estimatedCost": 150,

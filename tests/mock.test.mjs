@@ -32,6 +32,24 @@ const data = loadModule("../src/lib/data.ts", {
   "@/data/mock-db.json": fixture,
 });
 const drafts = loadModule("../src/lib/drafts.ts");
+const content = loadModule("../src/lib/project-content.ts");
+
+test("article content prefers Markdown and preserves every legacy step and warning", () => {
+  const steps = [
+    { id: "s1", projectId: "p1", order: 1, title: "ต่อวงจร", description: "รายละเอียดแรก", safetyNote: "ถอดไฟก่อน" },
+    { id: "s2", projectId: "p1", order: 2, title: "ทดสอบ", description: "รายละเอียดที่สอง" },
+  ];
+  assert.equal(content.projectArticle("## บทความใหม่", steps), "## บทความใหม่");
+  const legacy = content.projectArticle(undefined, steps);
+  for (const text of ["ต่อวงจร", "รายละเอียดแรก", "ถอดไฟก่อน", "ทดสอบ", "รายละเอียดที่สอง"]) assert.ok(legacy.includes(text));
+  assert.equal(content.projectArticle("", []), "");
+});
+
+test("article URLs allow web and local files but reject executable URLs", () => {
+  for (const url of ["https://example.com/guide.pdf", "http://example.com/image.png", "/images/circuit.svg"]) assert.equal(content.safeContentUrl(url), url);
+  for (const url of ["javascript:alert(1)", "data:text/html,x", "//evil.example", "/\\\\evil.example", "https://user:pass@example.com", "https://example.com/\nfile", "ftp://example.com", "not a url", ""]) assert.equal(content.safeContentUrl(url), undefined, url);
+});
+
 const memory = new Map();
 globalThis.localStorage = {
   getItem: (key) => memory.get(key) ?? null,
@@ -315,12 +333,42 @@ test("draft round-trip stores metadata only", () => {
   memory.set(drafts.DRAFT_KEY, JSON.stringify(corrupt));
   assert.throws(() => drafts.loadDraft(), /Invalid guide metadata/);
 });
+test("references round-trip and unsafe or malformed references are rejected", () => {
+  memory.clear();
+  const references = [
+    { label: "คู่มือ", url: "https://example.com/guide.pdf" },
+    { label: "วัสดุ", url: "http://example.com/material" },
+  ];
+  const draft = { ...drafts.emptyDraft(), references,
+    steps: "![รูป](https://example.com/image.jpg)",
+    materials: "[วัสดุ](https://example.com/material)" };
+  assert.deepEqual(drafts.validateStep(draft, 1), []);
+  drafts.saveDraft(draft, 1);
+  assert.deepEqual(drafts.loadDraft().draft.references, references);
+  assert.equal(drafts.loadDraft().draft.steps, draft.steps);
+  assert.equal(drafts.loadDraft().draft.materials, draft.materials);
+  for (const invalid of [
+    [{ label: "Bad", url: "javascript:alert(1)" }],
+    [{ label: "Bad", url: "data:text/html,bad" }],
+    [{ label: "Bad", url: "ftp://example.com/file" }],
+    [{ label: "Bad", url: "/relative" }],
+    [{ label: "Bad", url: "https://" }],
+    [{ label: "  ", url: "https://example.com" }],
+    [null], {},
+  ]) {
+    assert.ok(drafts.validateStep({ ...draft, references: invalid }, 1).length);
+    memory.set(drafts.DRAFT_KEY, JSON.stringify({ schema: 1, draft: { ...draft, references: invalid } }));
+    assert.throws(() => drafts.loadDraft(), /Invalid references/);
+  }
+});
+
 test("old drafts without cover resume and malformed drafts fail safely", () => {
   memory.clear();
   const old = drafts.emptyDraft();
   delete old.cover;
   delete old.guideFiles;
   delete old.compatibilityNotes;
+  delete old.references;
   memory.set(
     drafts.DRAFT_KEY,
     JSON.stringify({ schema: 1, draft: old, step: 99 }),
@@ -328,6 +376,7 @@ test("old drafts without cover resume and malformed drafts fail safely", () => {
   assert.equal(drafts.loadDraft().draft.cover, null);
   assert.deepEqual(drafts.loadDraft().draft.guideFiles, []);
   assert.equal(drafts.loadDraft().draft.compatibilityNotes, "");
+  assert.deepEqual(drafts.loadDraft().draft.references, []);
   assert.equal(drafts.loadDraft().step, 0);
   memory.set(drafts.DRAFT_KEY, "{broken");
   assert.throws(() => drafts.loadDraft());

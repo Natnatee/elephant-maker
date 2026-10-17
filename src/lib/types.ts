@@ -9,8 +9,11 @@ export interface Project {
   slug: string;
   title: string;
   summary: string;
+  articleMarkdown?: string;
+  references?: { label: string; url: string }[];
   category: Category;
   cover: string;
+  images?: { src: string; alt: string; kind?: "image" | "model" }[];
   ownerId: string;
   status: ProjectStatus;
   readiness: Readiness;
@@ -46,6 +49,7 @@ export interface Material {
   quantity: number;
   unit: string;
   estimatedCost: number;
+  url?: string;
   note?: string;
 }
 export interface ProjectFile {

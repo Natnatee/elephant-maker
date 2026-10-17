@@ -56,7 +56,9 @@ try {
     create schema storage;
     create table auth.users (
       id uuid primary key,
-      raw_user_meta_data jsonb not null default '{}'::jsonb
+      raw_user_meta_data jsonb not null default '{}'::jsonb,
+            raw_app_meta_data jsonb not null default '{}'::jsonb,
+            email text
     );
     create function auth.uid() returns uuid language sql stable as $$
       select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
@@ -84,8 +86,23 @@ try {
     grant select on storage.objects to anon;
   `);
   phase = "supabase/migrations/*.sql";
-  await db.exec(migration);
-  console.log("PASS: original migration executed.");
+  const usernameMigration = "20261017000000_member_usernames.sql";
+  assert.equal(migrationFiles.at(-1), usernameMigration);
+  for (const name of migrationFiles) {
+    if (name === usernameMigration) {
+      await db.exec(`
+        insert into auth.users(id, raw_app_meta_data, raw_user_meta_data)
+        values ('55555555-5555-4555-8555-555555555555', '{"provider":"email"}', '{"username":"legacy_name","name":"Legacy Maker"}');
+      `);
+    }
+    await db.exec(await readFile(new URL(name, migrationDirectory), "utf8"));
+  }
+  const { rows: legacy } = await db.query(`
+    select username, name from public.profiles
+    where id = '55555555-5555-4555-8555-555555555555'
+  `);
+  assert.deepEqual(legacy, [{ username: null, name: "Legacy Maker" }]);
+  await db.exec("delete from auth.users where id = '55555555-5555-4555-855PASS: original migration executed.");
 
   const tables = [
     "auth.users",

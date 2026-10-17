@@ -80,6 +80,19 @@ export function isCoverMetadata(value: unknown): value is CoverMetadata {
 export const requiresGuide = (readiness: string): boolean =>
   readiness === "ทดสอบแล้ว" || readiness === "ready";
 export type BinMetadata = { name: string; size: number; offset: string };
+export type DraftReference = { label: string; url: string };
+function isDraftReference(value: unknown): value is DraftReference {
+  if (!value || typeof value !== "object") return false;
+  const reference = value as Record<string, unknown>;
+  if (typeof reference.label !== "string" || !reference.label.trim() ||
+      typeof reference.url !== "string") return false;
+  try {
+    const url = new URL(reference.url);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 export type Draft = {
   title: string;
   summary: string;
@@ -88,6 +101,7 @@ export type Draft = {
   cover: CoverMetadata | null;
   materials: string;
   steps: string;
+  references: DraftReference[];
   guideFiles: GuideFileMetadata[];
   compatibilityNotes: string;
   contact: string;
@@ -107,6 +121,7 @@ export const emptyDraft = (): Draft => ({
   cover: null,
   materials: "",
   steps: "",
+  references: [],
   guideFiles: [],
   compatibilityNotes: "",
   contact: "",
@@ -134,6 +149,8 @@ export function validateStep(draft: Draft, step: number): string[] {
       "รูปปกต้องเป็น JPEG, PNG หรือ WebP ขนาดมากกว่า 0 และไม่เกิน 8 MiB",
     );
   if (step === 1) {
+    if (!Array.isArray(draft.references) || !draft.references.every(isDraftReference))
+      errors.push("แหล่งอ้างอิงต้องมีชื่อและ URL แบบ http:// หรือ https:// ที่ถูกต้อง");
     if (
       requiresGuide(draft.readiness) &&
       !draft.steps.trim() &&
@@ -186,6 +203,7 @@ export function saveDraft(draft: Draft, step: number): void {
   // Store an explicit metadata-only snapshot, never File objects or binary contents.
   const snapshot = {
     ...draft,
+    references: draft.references.map(({ label, url }) => ({ label, url })),
     cover: draft.cover
       ? {
           name: draft.cover.name,
@@ -234,6 +252,7 @@ export function loadDraft(): {
       key !== "files" &&
       key !== "cover" &&
       key !== "guideFiles" &&
+      key !== "references" &&
       !(key === "compatibilityNotes" && data[key] === undefined) &&
       typeof data[key] !== typeof defaults[key as keyof Draft]
     )
@@ -266,6 +285,11 @@ export function loadDraft(): {
       !data.guideFiles.every(isGuideFileMetadata))
   )
     throw new Error("Invalid guide metadata");
+  if (
+    data.references !== undefined &&
+    (!Array.isArray(data.references) || !data.references.every(isDraftReference))
+  )
+    throw new Error("Invalid references");
   const draft = emptyDraft();
   for (const key of Object.keys(defaults)) {
     if (key !== "cover" && data[key] !== undefined)
@@ -280,6 +304,7 @@ export function loadDraft(): {
     type,
     kind,
   }));
+  draft.references = draft.references.map(({ label, url }) => ({ label, url }));
   draft.files = draft.files.map(({ name, size, offset }) => ({
     name,
     size,
